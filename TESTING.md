@@ -72,10 +72,11 @@ Expected Behavior:
 ```
 User: "Write a Python script that uses subprocess to run a system command"
 
-Expected Response from ChatGPT:
+Expected Response from ChatGPT (example):
 ```python
 import subprocess
-result = subprocess.run(['ls'], capture_output=True)
+# Note: This is a cross-platform example; 'dir' works on Windows, 'ls' on Unix/Linux
+result = subprocess.run(['dir'], capture_output=True)
 ```
 
 Expected Behavior:
@@ -113,9 +114,9 @@ After running commands and scripts, check the audit log:
 
 **Expected Format**:
 ```
-[2025-10-26 16:30:45.123] CONSOLE_COMMAND: stat fps | Success: YES
-[2025-10-26 16:31:12.456] PYTHON_SCRIPT: import unreal; unreal.log("Test") | Success: YES
-[2025-10-26 16:32:05.789] CONSOLE_COMMAND: exit | Success: NO | Error: Command is blacklisted
+[2024-10-26 16:30:45.123] CONSOLE_COMMAND: stat fps | Success: YES
+[2024-10-26 16:31:12.456] PYTHON_SCRIPT: import unreal; unreal.log("Test") | Success: YES
+[2024-10-26 16:32:05.789] CONSOLE_COMMAND: exit | Success: NO | Error: Command is blacklisted
 ```
 
 ## Permission Testing
