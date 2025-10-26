@@ -74,10 +74,16 @@ private:
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
 	void OnFileIOPermissionChanged(ECheckBoxState NewState);
+	void OnSceneEditingPermissionChanged(ECheckBoxState NewState);
 	
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	ECheckBoxState GetSceneEditingPermission() const;
+	
+	// Scene editing
+	void ProcessSceneEditingCommand(const FString& Command);
+	FReply OnViewAuditLogClicked();
 	
 	// Accessibility helpers
 	void UpdateFontSize();
@@ -101,6 +107,7 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	bool bAllowSceneEditing = false;
 	
 	// Blueprint assistant state
 	FString PendingBlueprintPrompt;

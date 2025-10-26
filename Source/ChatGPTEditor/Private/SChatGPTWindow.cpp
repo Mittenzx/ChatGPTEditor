@@ -1,6 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SChatGPTWindow.h"
+#include "SSceneEditPreviewDialog.h"
+#include "SceneEditingManager.h"
+#include "AuditLogger.h"
 #include "SBlueprintAssistantPanel.h"
 #include "BlueprintAuditLog.h"
 #include "AssetAutomation.h"
@@ -20,6 +23,8 @@
 #include "JsonUtilities.h"
 #include "Misc/MessageDialog.h"
 #include "Framework/Application/SlateApplication.h"
+#include "Widgets/SWindow.h"
+#include "Editor.h"
 #include "Misc/FileHelper.h"
 #include "DesktopPlatformModule.h"
 #include "Framework/Commands/InputChord.h"
@@ -111,6 +116,21 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock)
 					.Text(LOCTEXT("FileIOPermission", "🔒 Allow File I/O Operations (DANGEROUS)"))
+				]
+			]
+			
+			// Scene Editing Permission
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(10.0f, 2.0f)
+			[
+				SNew(SCheckBox)
+				.IsChecked(this, &SChatGPTWindow::GetSceneEditingPermission)
+				.OnCheckStateChanged(this, &SChatGPTWindow::OnSceneEditingPermissionChanged)
+				.Content()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("SceneEditingPermission", "Allow Scene Editing (DANGEROUS)"))
 				]
 			]
 		]
@@ -260,11 +280,21 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 			// Clear history button
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
 			[
 				SAssignNew(ClearButton, SButton)
 				.Text(LOCTEXT("ClearButton", "Clear"))
 				.ToolTipText(LOCTEXT("ClearButtonTooltip", "Clear conversation history (Ctrl+L)"))
 				.OnClicked(this, &SChatGPTWindow::OnClearHistoryClicked)
+			]
+			
+			// View Audit Log button
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("AuditLogButton", "View Audit Log"))
+				.OnClicked(this, &SChatGPTWindow::OnViewAuditLogClicked)
 			]
 		]
 		
@@ -383,21 +413,39 @@ FReply SChatGPTWindow::OnSendMessageClicked()
 		return FReply::Handled();
 	}
 	
-	if (!IsAPIKeyValid())
-	{
-		FMessageDialog::Open(EAppMsgType::Ok, 
-			LOCTEXT("NoAPIKey", "Please set the OPENAI_API_KEY environment variable with your OpenAI API key."));
-		return FReply::Handled();
-	}
-	
 	// Append user message to conversation
 	AppendMessage(TEXT("User"), UserMessage);
 	
 	// Clear input box
 	MessageInputBox->SetText(FText::GetEmpty());
 	
-	// Send request to OpenAI
-	SendRequestToOpenAI(UserMessage);
+	// Check if this is a scene editing command
+	FString LowerMessage = UserMessage.ToLower();
+	bool bIsSceneEditCommand = LowerMessage.Contains(TEXT("add ")) || 
+	                           LowerMessage.Contains(TEXT("spawn ")) || 
+	                           LowerMessage.Contains(TEXT("place ")) || 
+	                           LowerMessage.Contains(TEXT("delete ")) || 
+	                           LowerMessage.Contains(TEXT("remove ")) || 
+	                           LowerMessage.Contains(TEXT("move ")) ||
+	                           (LowerMessage.Contains(TEXT("change ")) && (LowerMessage.Contains(TEXT("light")) || LowerMessage.Contains(TEXT("actor")))) ||
+	                           (LowerMessage.Contains(TEXT("set ")) && (LowerMessage.Contains(TEXT("light")) || LowerMessage.Contains(TEXT("actor"))));
+	
+	if (bIsSceneEditCommand)
+	{
+		ProcessSceneEditingCommand(UserMessage);
+	}
+	else
+	{
+		// Send regular request to OpenAI
+		if (!IsAPIKeyValid())
+		{
+			FMessageDialog::Open(EAppMsgType::Ok, 
+				LOCTEXT("NoAPIKey", "Please set the OPENAI_API_KEY environment variable with your OpenAI API key."));
+			return FReply::Handled();
+		}
+		
+		SendRequestToOpenAI(UserMessage);
+	}
 	
 	return FReply::Handled();
 }
@@ -720,6 +768,103 @@ ECheckBoxState SChatGPTWindow::GetConsoleCommandPermission() const
 ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 {
 	return bAllowFileIO ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void SChatGPTWindow::OnSceneEditingPermissionChanged(ECheckBoxState NewState)
+{
+	HandlePermissionChange(
+		bAllowSceneEditing,
+		NewState,
+		LOCTEXT("SceneEditingWarning", 
+			"WARNING: Enabling Scene Editing allows ChatGPT to modify your level.\n\n"
+			"This can lead to:\n"
+			"- Unwanted changes to your level\n"
+			"- Deletion of actors\n"
+			"- Data loss\n\n"
+			"All changes will require preview and confirmation.\n\n"
+			"Only enable this if you understand the risks and have backups.\n\n"
+			"Do you want to continue?")
+	);
+}
+
+ECheckBoxState SChatGPTWindow::GetSceneEditingPermission() const
+{
+	return bAllowSceneEditing ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void SChatGPTWindow::ProcessSceneEditingCommand(const FString& Command)
+{
+	if (!bAllowSceneEditing)
+	{
+		AppendMessage(TEXT("System"), TEXT("Scene editing is disabled. Enable 'Allow Scene Editing' permission to use this feature."));
+		return;
+	}
+
+	UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
+	if (!World)
+	{
+		AppendMessage(TEXT("Error"), TEXT("No active world found. Please open a level first."));
+		return;
+	}
+
+	// Parse the command into actions
+	TArray<FSceneEditAction> Actions = FSceneEditingManager::Get().ParseCommand(Command);
+
+	if (Actions.Num() == 0)
+	{
+		AppendMessage(TEXT("System"), TEXT("Could not parse scene editing command. Try commands like:\n"
+			"- 'Add 5 lights to this room'\n"
+			"- 'Place a camera at PlayerStart'\n"
+			"- 'Move all props up by 100 units'\n"
+			"- 'Delete all trigger volumes'"));
+		return;
+	}
+
+	// Show preview dialog
+	TSharedRef<SSceneEditPreviewDialog> PreviewDialog = SNew(SSceneEditPreviewDialog)
+		.Actions(Actions);
+
+	TSharedRef<SWindow> PreviewWindow = SNew(SWindow)
+		.Title(LOCTEXT("PreviewWindowTitle", "Scene Editing Preview"))
+		.ClientSize(FVector2D(700, 500))
+		.SupportsMaximize(false)
+		.SupportsMinimize(false)
+		[
+			PreviewDialog
+		];
+
+	FSlateApplication::Get().AddModalWindow(PreviewWindow, FSlateApplication::Get().GetActiveTopLevelWindow());
+
+	// Check if user confirmed
+	if (PreviewDialog->WasConfirmed())
+	{
+		// Execute the actions
+		bool bSuccess = FSceneEditingManager::Get().ExecuteActions(Actions, World, false);
+		
+		if (bSuccess)
+		{
+			AppendMessage(TEXT("System"), TEXT("Scene editing actions applied successfully. Check the audit log for details."));
+		}
+		else
+		{
+			AppendMessage(TEXT("Error"), TEXT("Failed to apply some scene editing actions. Check the audit log for details."));
+		}
+	}
+	else
+	{
+		AppendMessage(TEXT("System"), TEXT("Scene editing actions cancelled by user."));
+	}
+}
+
+FReply SChatGPTWindow::OnViewAuditLogClicked()
+{
+	// Get the audit log
+	FString LogText = FAuditLogger::Get().ExportLogToString();
+
+	// Create a dialog to show the log
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(LogText));
+
+	return FReply::Handled();
 }
 
 // Blueprint Scripting Assistant Implementation

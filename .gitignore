@@ -1,3 +1,29 @@
+# Unreal Engine build files
+Binaries/
+Build/
+Intermediate/
+Saved/
+DerivedDataCache/
+
+# Visual Studio files
+.vs/
+*.sln
+*.suo
+*.user
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*.ncb
+*.sdf
+*.opensdf
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Rider files
+.idea/
+*.sln.iml
 # Unreal Engine Build Files
 Binaries/
 Build/
@@ -42,6 +68,13 @@ Saved/
 *.exe
 *.out
 *.app
+
+# Debug files
+*.dSYM/
+
+# macOS
+.DS_Store
+*.DS_Store
 *.ipa
 
 # Unreal Engine Specific
@@ -83,6 +116,10 @@ Thumbs.db
 *.tmp
 *.log
 *.swp
+*~
+
+# User settings
+*.ini
 *.swo
 
 # Build artifacts
