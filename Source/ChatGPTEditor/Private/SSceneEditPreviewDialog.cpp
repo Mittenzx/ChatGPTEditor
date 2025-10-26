@@ -164,7 +164,7 @@ FString SSceneEditPreviewDialog::GeneratePreviewText(const TArray<FSceneEditActi
 			case ESceneEditOperation::DeleteActor:
 				PreviewText += FString::Printf(TEXT("  Operation: DELETE\n"));
 				PreviewText += FString::Printf(TEXT("  Target: All actors matching '%s'\n"), *Action.SearchPattern);
-				PreviewText += TEXT("  WARNING: This operation cannot be undone!\n");
+				PreviewText += TEXT("  WARNING: Please review carefully before confirming.\n");
 				break;
 				
 			case ESceneEditOperation::MoveActor:
