@@ -4,38 +4,37 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 
 ## Features
 
+### Core Functionality
 - **Slate-based UI**: Clean, integrated Editor tab that fits naturally into the Unreal Editor workflow
 - **OpenAI Integration**: Direct communication with OpenAI's Chat Completions API (GPT-3.5-turbo)
-- **External API & Web Integration**: Connect to external REST APIs and web services via chat prompts
-- **Security-First Design**: Permission toggles for potentially destructive operations
-- **Preview & Approval System**: All external API requests require manual approval before execution
-- **Audit Logging**: Comprehensive logging of all API connections and code changes
-- **Code Generation**: Automatic generation of UE5 integration code for external APIs
-- **Test Automation & QA**: Generate, preview, and manage automated tests with natural language prompts
-- **Project File Management**: Edit project configuration files (DefaultEngine.ini, .uproject, etc.) using natural language
-- **Security-First Design**: Permission toggles for potentially destructive operations
-- **Preview & Confirm**: All file changes must be previewed and explicitly confirmed before applying
-- **Automatic Backups**: Creates timestamped backups before any file modifications
-- **Audit Logging**: Complete operation log in `Saved/ChatGPTEditor/audit.log`
-- **Level Design & Scene Editing**: Natural language-based actor spawning, movement, deletion, and modification
-- **Security-First Design**: Permission toggles for potentially destructive operations
-- **Preview & Confirmation**: All scene changes require explicit preview and confirmation
-- **Audit Logging**: Complete tracking of all scene editing operations
 - **Conversation History**: Maintains context throughout your ChatGPT conversation
-- **Audit Logging**: All test generation and execution requests are logged for security and compliance
 - **Environment-based API Keys**: Secure API key storage using environment variables
-- **📝 Documentation Generation**: Generate or update documentation files (README, guides) from natural language prompts
-- **🔍 Code Review & Explanation**: Request explanations for code, assets, or project structure
-- **📋 Audit Logging**: Complete audit trail of all documentation and code review operations
-- **✅ Preview & Confirm**: All documentation changes are previewed and require explicit confirmation
+
+### AI-Powered Automation
+- **Blueprint Scripting Assistant**: Generate and explain Blueprint logic using natural language
+- **Editor Asset Automation**: Create and modify Unreal Engine assets using natural language prompts
+- **Level Design & Scene Editing**: Natural language-based actor spawning, movement, deletion, and modification
+- **Test Automation & QA**: Generate, preview, and manage automated tests with natural language prompts
+- **Documentation Generation**: Generate or update documentation files (README, guides) from natural language prompts
+- **Code Review & Explanation**: Request explanations for code, assets, or project structure
+
+### Integration & Extensibility
+- **External API & Web Integration**: Connect to external REST APIs and web services via chat prompts
+- **Code Generation**: Automatic generation of UE5 integration code for external APIs
+- **Project File Management**: Edit project configuration files (DefaultEngine.ini, .uproject, etc.) using natural language
 - **Editor Console Commands**: Execute Unreal Editor console commands via natural language (with permission gating)
 - **Python Scripting**: Generate and execute Python scripts to automate Editor tasks (with preview and confirmation)
-- **Audit Logging**: All console and scripting actions are logged to Saved/ChatGPTEditor/audit.log
+
+### Security & Safety
+- **Security-First Design**: Permission toggles for potentially destructive operations
+- **Preview & Approval System**: All external API requests and code changes require manual approval before execution
+- **Automatic Backups**: Creates timestamped backups before any file modifications
+- **Audit Logging**: Comprehensive logging of all operations in `Saved/ChatGPTEditor/audit.log`
+
+### User Experience
 - **Keyboard Shortcuts**: Efficient navigation and control with keyboard shortcuts
 - **Accessibility Features**: Adjustable font sizes and tooltips for all interactive elements
 - **Visual Feedback**: Icons and loading indicators for better user experience
-- **Editor Asset Automation**: Create and modify Unreal Engine assets using natural language prompts
-- **Audit Logging**: All asset operations are logged with timestamps and user information
 
 ## Installation
 
