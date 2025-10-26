@@ -6,6 +6,9 @@
 
 /**
  * Types of scene editing operations
+ * Note: Using plain C++ enum instead of UENUM as these are editor-only types
+ * not exposed to Blueprint. If Blueprint integration is needed in the future,
+ * convert to UENUM and add .generated.h support.
  */
 enum class ESceneEditOperation : uint8
 {
@@ -17,6 +20,8 @@ enum class ESceneEditOperation : uint8
 
 /**
  * Represents a single scene editing action
+ * Note: Using plain C++ struct as this is editor-only and not serialized to disk.
+ * If persistence is needed, convert to USTRUCT with UPROPERTY macros.
  */
 struct FSceneEditAction
 {
@@ -33,6 +38,8 @@ struct FSceneEditAction
 
 /**
  * Represents an audit log entry for scene editing operations
+ * Note: Currently in-memory only. If persistent storage is needed,
+ * convert to USTRUCT with UPROPERTY macros or implement custom serialization.
  */
 struct FAuditLogEntry
 {
