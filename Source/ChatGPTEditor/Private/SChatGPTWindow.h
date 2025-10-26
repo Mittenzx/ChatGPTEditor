@@ -9,11 +9,14 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+struct FBlueprintPreviewData;
+struct FBlueprintExplanation;
 
 /**
  * Slate widget for ChatGPT window
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
+ * Includes Blueprint Scripting Assistant for generating and explaining Blueprints
  */
 class SChatGPTWindow : public SCompoundWidget
 {
@@ -29,10 +32,22 @@ private:
 	// UI event handlers
 	FReply OnSendMessageClicked();
 	FReply OnClearHistoryClicked();
+	FReply OnGenerateBlueprintClicked();
+	FReply OnExplainBlueprintClicked();
+	FReply OnExportAuditLogClicked();
 	
 	// HTTP request handling
 	void SendRequestToOpenAI(const FString& UserMessage);
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnBlueprintGenerationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, const FString& UserPrompt);
+	void OnBlueprintExplanationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, const FString& BlueprintName);
+	
+	// Blueprint assistant functions
+	void ShowBlueprintPreview(const FBlueprintPreviewData& PreviewData, const FString& UserPrompt);
+	void ProcessBlueprintGeneration(const FString& UserPrompt, bool bApproved);
+	void DisplayBlueprintExplanation(const FBlueprintExplanation& Explanation);
+	FBlueprintPreviewData ParseBlueprintGenerationResponse(const FString& ResponseContent);
+	FBlueprintExplanation ParseBlueprintExplanationResponse(const FString& ResponseContent);
 	
 	// Helper functions
 	void AppendMessage(const FString& Role, const FString& Message);
@@ -54,6 +69,8 @@ private:
 	TSharedPtr<SEditableTextBox> MessageInputBox;
 	TSharedPtr<SMultiLineEditableTextBox> ConversationHistoryBox;
 	TSharedPtr<SScrollBox> ConversationScrollBox;
+	TSharedPtr<SEditableTextBox> BlueprintPromptBox;
+	TSharedPtr<SEditableTextBox> BlueprintNameBox;
 	
 	// Conversation state
 	FString ConversationHistory;
@@ -63,4 +80,7 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	
+	// Blueprint assistant state
+	FString PendingBlueprintPrompt;
 };
