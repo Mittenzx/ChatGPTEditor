@@ -38,6 +38,7 @@ private:
 	void AppendMessage(const FString& Role, const FString& Message);
 	FString GetAPIKey() const;
 	bool IsAPIKeyValid() const;
+	void HandlePermissionChange(bool& bPermissionFlag, ECheckBoxState NewState, const FText& WarningText);
 	
 	// Permission toggle handlers
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);

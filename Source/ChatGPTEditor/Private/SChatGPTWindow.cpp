@@ -295,7 +295,19 @@ void SChatGPTWindow::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
 	if (ResponseObject->TryGetArrayField(TEXT("choices"), ChoicesArray) && ChoicesArray->Num() > 0)
 	{
 		TSharedPtr<FJsonObject> Choice = (*ChoicesArray)[0]->AsObject();
+		if (!Choice.IsValid())
+		{
+			AppendMessage(TEXT("Error"), TEXT("Unexpected API response format: 'choices[0]' is not an object."));
+			return;
+		}
+		
 		TSharedPtr<FJsonObject> Message = Choice->GetObjectField(TEXT("message"));
+		if (!Message.IsValid())
+		{
+			AppendMessage(TEXT("Error"), TEXT("Unexpected API response format: missing or invalid 'message' field."));
+			return;
+		}
+		
 		FString AssistantMessage = Message->GetStringField(TEXT("content"));
 		
 		// Add assistant message to conversation
@@ -333,85 +345,71 @@ bool SChatGPTWindow::IsAPIKeyValid() const
 	return !APIKey.IsEmpty();
 }
 
-void SChatGPTWindow::OnAssetWritePermissionChanged(ECheckBoxState NewState)
+void SChatGPTWindow::HandlePermissionChange(bool& bPermissionFlag, ECheckBoxState NewState, const FText& WarningText)
 {
 	bool bNewValue = (NewState == ECheckBoxState::Checked);
 	
-	if (bNewValue && !bAllowAssetWrite)
+	if (bNewValue && !bPermissionFlag)
 	{
-		EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo,
-			LOCTEXT("AssetWriteWarning", 
-				"WARNING: Enabling Asset Write operations allows ChatGPT to modify your project assets.\n\n"
-				"This can lead to:\n"
-				"- Data loss\n"
-				"- Project corruption\n"
-				"- Unintended changes\n\n"
-				"Only enable this if you understand the risks and have backups.\n\n"
-				"Do you want to continue?"));
+		EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo, WarningText);
 		
 		if (Result == EAppReturnType::Yes)
 		{
-			bAllowAssetWrite = true;
+			bPermissionFlag = true;
 		}
 	}
 	else
 	{
-		bAllowAssetWrite = bNewValue;
+		bPermissionFlag = bNewValue;
 	}
+}
+
+void SChatGPTWindow::OnAssetWritePermissionChanged(ECheckBoxState NewState)
+{
+	HandlePermissionChange(
+		bAllowAssetWrite,
+		NewState,
+		LOCTEXT("AssetWriteWarning", 
+			"WARNING: Enabling Asset Write operations allows ChatGPT to modify your project assets.\n\n"
+			"This can lead to:\n"
+			"- Data loss\n"
+			"- Project corruption\n"
+			"- Unintended changes\n\n"
+			"Only enable this if you understand the risks and have backups.\n\n"
+			"Do you want to continue?")
+	);
 }
 
 void SChatGPTWindow::OnConsoleCommandPermissionChanged(ECheckBoxState NewState)
 {
-	bool bNewValue = (NewState == ECheckBoxState::Checked);
-	
-	if (bNewValue && !bAllowConsoleCommands)
-	{
-		EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo,
-			LOCTEXT("ConsoleCommandWarning", 
-				"WARNING: Enabling Console Commands allows ChatGPT to execute arbitrary commands in your editor.\n\n"
-				"This can lead to:\n"
-				"- System changes\n"
-				"- Security vulnerabilities\n"
-				"- Unexpected behavior\n\n"
-				"Only enable this if you understand the risks.\n\n"
-				"Do you want to continue?"));
-		
-		if (Result == EAppReturnType::Yes)
-		{
-			bAllowConsoleCommands = true;
-		}
-	}
-	else
-	{
-		bAllowConsoleCommands = bNewValue;
-	}
+	HandlePermissionChange(
+		bAllowConsoleCommands,
+		NewState,
+		LOCTEXT("ConsoleCommandWarning", 
+			"WARNING: Enabling Console Commands allows ChatGPT to execute arbitrary commands in your editor.\n\n"
+			"This can lead to:\n"
+			"- System changes\n"
+			"- Security vulnerabilities\n"
+			"- Unexpected behavior\n\n"
+			"Only enable this if you understand the risks.\n\n"
+			"Do you want to continue?")
+	);
 }
 
 void SChatGPTWindow::OnFileIOPermissionChanged(ECheckBoxState NewState)
 {
-	bool bNewValue = (NewState == ECheckBoxState::Checked);
-	
-	if (bNewValue && !bAllowFileIO)
-	{
-		EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo,
-			LOCTEXT("FileIOWarning", 
-				"WARNING: Enabling File I/O operations allows ChatGPT to read and write files on your system.\n\n"
-				"This can lead to:\n"
-				"- Data loss\n"
-				"- File corruption\n"
-				"- Security vulnerabilities\n\n"
-				"Only enable this if you understand the risks and have backups.\n\n"
-				"Do you want to continue?"));
-		
-		if (Result == EAppReturnType::Yes)
-		{
-			bAllowFileIO = true;
-		}
-	}
-	else
-	{
-		bAllowFileIO = bNewValue;
-	}
+	HandlePermissionChange(
+		bAllowFileIO,
+		NewState,
+		LOCTEXT("FileIOWarning", 
+			"WARNING: Enabling File I/O operations allows ChatGPT to read and write files on your system.\n\n"
+			"This can lead to:\n"
+			"- Data loss\n"
+			"- File corruption\n"
+			"- Security vulnerabilities\n\n"
+			"Only enable this if you understand the risks and have backups.\n\n"
+			"Do you want to continue?")
+	);
 }
 
 ECheckBoxState SChatGPTWindow::GetAssetWritePermission() const
