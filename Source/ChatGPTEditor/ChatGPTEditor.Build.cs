@@ -31,7 +31,8 @@ public class ChatGPTEditor : ModuleRules
 				"BlueprintGraph",
 				"Kismet",
 				"KismetCompiler",
-				"GraphEditor"
+				"GraphEditor",
+				"DesktopPlatform"
 			}
 		);
 	}
