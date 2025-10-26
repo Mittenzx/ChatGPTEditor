@@ -109,6 +109,21 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 					.Text(LOCTEXT("FileIOPermission", "Allow File I/O Operations (DANGEROUS)"))
 				]
 			]
+			
+			// Python Scripting Permission
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(10.0f, 2.0f)
+			[
+				SNew(SCheckBox)
+				.IsChecked(this, &SChatGPTWindow::GetPythonScriptingPermission)
+				.OnCheckStateChanged(this, &SChatGPTWindow::OnPythonScriptingPermissionChanged)
+				.Content()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("PythonScriptingPermission", "Allow Python Scripting (DANGEROUS)"))
+				]
+			]
 		]
 		
 		+ SVerticalBox::Slot()
@@ -428,6 +443,23 @@ void SChatGPTWindow::OnFileIOPermissionChanged(ECheckBoxState NewState)
 	);
 }
 
+void SChatGPTWindow::OnPythonScriptingPermissionChanged(ECheckBoxState NewState)
+{
+	HandlePermissionChange(
+		bAllowPythonScripting,
+		NewState,
+		LOCTEXT("PythonScriptingWarning", 
+			"WARNING: Enabling Python Scripting allows ChatGPT to execute Python code in your editor.\n\n"
+			"This can lead to:\n"
+			"- Asset modification or deletion\n"
+			"- Project corruption\n"
+			"- Arbitrary code execution\n"
+			"- System-level operations\n\n"
+			"Only enable this if you understand the risks and have backups.\n\n"
+			"Do you want to continue?")
+	);
+}
+
 ECheckBoxState SChatGPTWindow::GetAssetWritePermission() const
 {
 	return bAllowAssetWrite ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
@@ -443,6 +475,11 @@ ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 	return bAllowFileIO ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
+ECheckBoxState SChatGPTWindow::GetPythonScriptingPermission() const
+{
+	return bAllowPythonScripting ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
 void SChatGPTWindow::ProcessAssistantResponse(const FString& Response)
 {
 	// Try to execute console command if permissions allow
@@ -455,7 +492,7 @@ void SChatGPTWindow::ProcessAssistantResponse(const FString& Response)
 	}
 	
 	// Try to execute Python script if permissions allow
-	if (bAllowConsoleCommands) // Reusing console permission for now
+	if (bAllowPythonScripting)
 	{
 		TryExecutePythonScript(Response);
 	}

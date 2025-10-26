@@ -56,10 +56,12 @@ private:
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
 	void OnFileIOPermissionChanged(ECheckBoxState NewState);
+	void OnPythonScriptingPermissionChanged(ECheckBoxState NewState);
 	
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	ECheckBoxState GetPythonScriptingPermission() const;
 
 private:
 	// UI widgets
@@ -75,6 +77,7 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	bool bAllowPythonScripting = false;
 	
 	// Console and scripting handlers
 	TSharedPtr<FChatGPTConsoleHandler> ConsoleHandler;

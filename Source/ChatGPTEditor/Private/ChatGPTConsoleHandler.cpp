@@ -32,7 +32,6 @@ void FChatGPTConsoleHandler::InitializeCommandLists()
 		TEXT("t.maxfps"),
 		TEXT("getall"),
 		TEXT("obj list"),
-		TEXT("ke *"),  // Key bindings display
 		TEXT("help")
 	};
 	
@@ -56,9 +55,7 @@ void FChatGPTConsoleHandler::InitializeCommandLists()
 		TEXT("reset"),
 		TEXT("save"),
 		TEXT("load"),
-		TEXT("execute"),
-		TEXT("run"),
-		TEXT("set"),
+		TEXT("set "),  // Space after "set" to avoid matching "asset" etc.
 		TEXT("changesize")
 	};
 }

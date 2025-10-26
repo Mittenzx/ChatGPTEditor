@@ -62,6 +62,9 @@ private:
 	// Dangerous Python operations that require extra warnings
 	TArray<FString> DangerousOperations;
 	
+	// Forbidden Python operations that should reject scripts
+	TArray<FString> ForbiddenOperations;
+	
 	void InitializeDangerousOperations();
 	FString SanitizeScriptForPreview(const FString& Script) const;
 };

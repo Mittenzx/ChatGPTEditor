@@ -28,12 +28,16 @@ void FChatGPTPythonHandler::InitializeDangerousOperations()
 	DangerousOperations = {
 		TEXT("import os"),
 		TEXT("import sys"),
-		TEXT("import subprocess"),
 		TEXT("delete"),
 		TEXT("remove"),
 		TEXT("destroy"),
 		TEXT("unregister"),
-		TEXT("save"),
+		TEXT("save")
+	};
+	
+	// Operations that are forbidden and will cause validation to fail
+	ForbiddenOperations = {
+		TEXT("import subprocess"),
 		TEXT("exec("),
 		TEXT("eval("),
 		TEXT("__import__"),
@@ -169,6 +173,16 @@ bool FChatGPTPythonHandler::ValidateScript(const FString& Script, TArray<FString
 	
 	FString LowerScript = Script.ToLower();
 	
+	// Check for forbidden operations first
+	for (const FString& ForbiddenOp : ForbiddenOperations)
+	{
+		if (LowerScript.Contains(ForbiddenOp.ToLower()))
+		{
+			OutWarnings.Add(FString::Printf(TEXT("FORBIDDEN: Script contains prohibited operation: %s"), *ForbiddenOp));
+			return false; // Reject the script
+		}
+	}
+	
 	// Check for dangerous operations
 	for (const FString& DangerousOp : DangerousOperations)
 	{
@@ -178,7 +192,7 @@ bool FChatGPTPythonHandler::ValidateScript(const FString& Script, TArray<FString
 		}
 	}
 	
-	// Always passes validation, but warnings are shown to user
+	// Script passes validation but may have warnings
 	return true;
 }
 

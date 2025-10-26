@@ -122,7 +122,7 @@ The plugin can generate and execute Python scripts to automate Editor tasks. Thi
    - Search for "Python Editor Script Plugin"
    - Enable it and restart the editor
 
-2. **Enable the permission**: Check "Allow Console Commands" in the ChatGPT window
+2. **Enable the permission**: Check "Allow Python Scripting" in the ChatGPT window
 
 #### How to Use Python Scripting
 
@@ -183,7 +183,7 @@ All console commands and Python scripts are logged for security and debugging pu
 
 ### Security Permissions
 
-The plugin includes three permission toggles that are **disabled by default** for your safety:
+The plugin includes four permission toggles that are **disabled by default** for your safety:
 
 #### 🔒 Allow Asset Write Operations (DANGEROUS)
 - **Default**: OFF
@@ -194,7 +194,7 @@ The plugin includes three permission toggles that are **disabled by default** fo
 #### 🔒 Allow Console Commands (DANGEROUS)
 - **Default**: OFF
 - **Risk**: Can execute arbitrary console commands in the editor
-- **When to enable**: Only when you need ChatGPT to perform editor operations
+- **When to enable**: Only when you need ChatGPT to execute console commands
 - **Warning**: Can affect editor state and project settings
 
 #### 🔒 Allow File I/O Operations (DANGEROUS)
@@ -202,6 +202,13 @@ The plugin includes three permission toggles that are **disabled by default** fo
 - **Risk**: Can read and write files on your system
 - **When to enable**: Only when you need ChatGPT to work with external files
 - **Warning**: Can lead to data loss or file corruption
+
+#### 🔒 Allow Python Scripting (DANGEROUS)
+- **Default**: OFF
+- **Risk**: Can execute arbitrary Python code in the editor
+- **When to enable**: Only when you need ChatGPT to generate and execute Python scripts
+- **Warning**: Can modify assets, execute system commands, and affect project integrity
+- **Note**: Requires the Python Editor Script Plugin to be enabled
 
 **Important**: Each permission requires explicit confirmation when enabled. You will see a warning dialog explaining the risks.
 
