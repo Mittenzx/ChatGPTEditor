@@ -1,0 +1,26 @@
+# Unreal Engine files
+Binaries/
+Intermediate/
+Build/
+DerivedDataCache/
+
+# Plugin generated files
+Saved/
+
+# IDE files
+.vs/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+
+# Build files
+*.obj
+*.pdb
+*.lib
+*.exp
+
+# Temporary files
+*.tmp
+*.log
+*.tlog

@@ -16,6 +16,7 @@
 #include "Engine/Blueprint.h"
 #include "UObject/SavePackage.h"
 #include "PackageTools.h"
+#include "ObjectTools.h"
 
 #define LOCTEXT_NAMESPACE "AssetAutomation"
 
@@ -368,7 +369,7 @@ bool FAssetAutomation::RenameAsset(const FAssetOperation& Operation)
 	
 	// Find the asset
 	TArray<FAssetData> AssetDataList;
-	AssetRegistry.GetAssetsByPackageName(*Operation.AssetName, AssetDataList);
+	AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
 	
 	if (AssetDataList.Num() == 0)
 	{
@@ -419,7 +420,7 @@ bool FAssetAutomation::DeleteAsset(const FAssetOperation& Operation)
 	
 	// Find the asset
 	TArray<FAssetData> AssetDataList;
-	AssetRegistry.GetAssetsByPackageName(*Operation.AssetName, AssetDataList);
+	AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
 	
 	if (AssetDataList.Num() == 0)
 	{
