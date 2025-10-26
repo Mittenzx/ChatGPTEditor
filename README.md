@@ -6,6 +6,11 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 
 - **Slate-based UI**: Clean, integrated Editor tab that fits naturally into the Unreal Editor workflow
 - **OpenAI Integration**: Direct communication with OpenAI's Chat Completions API (GPT-3.5-turbo)
+- **Project File Management**: Edit project configuration files (DefaultEngine.ini, .uproject, etc.) using natural language
+- **Security-First Design**: Permission toggles for potentially destructive operations
+- **Preview & Confirm**: All file changes must be previewed and explicitly confirmed before applying
+- **Automatic Backups**: Creates timestamped backups before any file modifications
+- **Audit Logging**: Complete operation log in `Saved/ChatGPTEditor/audit.log`
 - **Level Design & Scene Editing**: Natural language-based actor spawning, movement, deletion, and modification
 - **Security-First Design**: Permission toggles for potentially destructive operations
 - **Preview & Confirmation**: All scene changes require explicit preview and confirmation
@@ -408,6 +413,58 @@ All console commands and Python scripts are logged for security and debugging pu
 - Success/failure status
 - Error messages (if applicable)
 
+### Project File and Config Management
+
+With the **File I/O Operations** permission enabled, you can use natural language to read and modify project configuration files.
+
+#### Reading Files
+
+Simply ask ChatGPT to read a file:
+```
+"Read the DefaultEngine.ini file"
+"Show me the contents of Config/DefaultGame.ini"
+"What's in my .uproject file?"
+```
+
+ChatGPT will use the `READ_FILE:` command internally to fetch the file contents and display them in the conversation.
+
+#### Modifying Files
+
+Ask ChatGPT to make specific changes to configuration files:
+```
+"Set the default game mode to MyGameMode in DefaultEngine.ini"
+"Add a new plugin dependency to the .uproject file"
+"Change the max FPS to 120 in DefaultEngine.ini"
+```
+
+When ChatGPT generates a file modification:
+1. A **preview dialog** will appear showing the exact changes
+2. You must **explicitly confirm** before any changes are applied
+3. A **backup** is automatically created (with timestamp) before writing
+4. All operations are **logged** to `Saved/ChatGPTEditor/audit.log`
+
+#### Safety Features
+
+- **Path Validation**: Only files within your project directory can be accessed
+- **Preview Required**: All changes must be previewed and confirmed
+- **Automatic Backups**: Original files are backed up before modification
+- **Audit Logging**: Every file operation is logged with timestamp
+- **Permission Required**: File I/O permission must be explicitly enabled
+
+#### Supported File Types
+
+- Configuration files (`.ini`): DefaultEngine.ini, DefaultGame.ini, etc.
+- Project files (`.uproject`)
+- Any text-based project configuration files
+
+#### Example Workflow
+
+1. **Enable File I/O Permission**: Check the "Allow File I/O Operations" checkbox and confirm the warning
+2. **Ask ChatGPT**: "I need to enable ray tracing in DefaultEngine.ini"
+3. **Review Changes**: ChatGPT will show you the proposed changes in a preview dialog
+4. **Confirm**: Click "Yes" to apply the changes or "No" to cancel
+5. **Verify**: Check the audit log at `Saved/ChatGPTEditor/audit.log` for the operation record
+
 ### Security Permissions
 
 The plugin includes four permission toggles that are **disabled by default** for your safety:
@@ -427,9 +484,14 @@ The plugin includes four permission toggles that are **disabled by default** for
 
 #### 🔒 Allow File I/O Operations (DANGEROUS)
 - **Default**: OFF
-- **Risk**: Can read and write files on your system
-- **When to enable**: Only when you need ChatGPT to work with external files
+- **Risk**: Can read and write project configuration files
+- **When to enable**: Only when you need ChatGPT to modify project files (e.g., DefaultEngine.ini, .uproject)
 - **Warning**: Can lead to data loss or file corruption
+- **Features**:
+  - Read project configuration files
+  - Preview all changes before applying
+  - Automatic backups created before any file modifications
+  - All operations logged to `Saved/ChatGPTEditor/audit.log`
 
 #### 🔒 Allow Python Scripting (DANGEROUS)
 - **Default**: OFF
@@ -609,6 +671,9 @@ ChatGPTEditor/
 
 ## Known Limitations
 
+- **File I/O limited to project files**: Only files within the project directory can be accessed for security
+- **Asset Write operations**: UI toggle present but not yet implemented
+- **Console Commands**: UI toggle present but not yet implemented
 - **Python dependency**: Python scripting requires the Python Editor Script Plugin to be enabled
 - **No local AI support**: Requires internet connection and OpenAI API access
 - **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
@@ -751,6 +816,13 @@ For issues, questions, or suggestions:
 ## Version History
 
 ### 1.1.0 (Current)
+- Added project file and config management
+- Implemented file read/write operations with natural language
+- Added preview and confirmation dialogs for all file changes
+- Automatic backup creation before file modifications
+- Complete audit logging system
+- Path validation and security controls
+- Documentation and usage examples
 - Added Editor Console Command execution with natural language support
 - Added Python script generation and execution
 - Implemented audit logging for all console and scripting actions

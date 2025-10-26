@@ -1,3 +1,23 @@
+# Unreal Engine
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# Plugin build artifacts
+*.uplugin.manifest
+
+# IDE files
+.vs/
+.vscode/
+.idea/
 # Unreal Engine build files
 Binaries/
 Build/

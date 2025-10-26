@@ -9,6 +9,7 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class FProjectFileManager;
 class FChatGPTConsoleHandler;
 class FChatGPTPythonHandler;
 class SButton;
@@ -101,6 +102,11 @@ private:
 	// Accessibility helpers
 	void UpdateFontSize();
 	FText GetFontSizeButtonText() const;
+
+	// File operation handlers
+	void ProcessFileOperation(const FString& AssistantMessage);
+	bool ExtractFileOperationCommand(const FString& Message, FString& OutCommand, FString& OutFilePath, FString& OutContent);
+	void ShowFileChangePreview(const FString& FilePath, const FString& NewContent);
 
 private:
 	// UI widgets
