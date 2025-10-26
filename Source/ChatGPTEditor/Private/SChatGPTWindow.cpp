@@ -28,9 +28,6 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 	// Initialize API handler
 	APIHandler = MakeShareable(new FExternalAPIHandler());
 	
-	// Initialize audit logger
-	FAuditLogger::Get().Initialize();
-	
 	ChildSlot
 	[
 		SNew(SVerticalBox)

@@ -149,11 +149,12 @@ void FExternalAPIHandler::ExecuteAPIRequest(const FAPIRequestDetails& Details, F
 		HttpRequest->SetContentAsString(Details.Body);
 	}
 	
-	// Bind response callback
-	HttpRequest->OnProcessRequestComplete().BindRaw(
-		this, 
-		&FExternalAPIHandler::OnHTTPResponseReceived,
-		Callback
+	// Bind response callback using a lambda to capture the callback
+	HttpRequest->OnProcessRequestComplete().BindLambda(
+		[this, Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		{
+			OnHTTPResponseReceived(Request, Response, bWasSuccessful, Callback);
+		}
 	);
 	
 	// Execute request
@@ -165,6 +166,18 @@ void FExternalAPIHandler::ExecuteAPIRequest(const FAPIRequestDetails& Details, F
 
 FString FExternalAPIHandler::GenerateIntegrationCode(const FAPIRequestDetails& Details)
 {
+	// Helper lambda to escape strings for C++ code generation
+	auto EscapeForCpp = [](const FString& Input) -> FString
+	{
+		FString Result = Input;
+		Result = Result.Replace(TEXT("\\"), TEXT("\\\\"));  // Escape backslashes first
+		Result = Result.Replace(TEXT("\""), TEXT("\\\""));  // Escape quotes
+		Result = Result.Replace(TEXT("\n"), TEXT("\\n"));   // Escape newlines
+		Result = Result.Replace(TEXT("\r"), TEXT("\\r"));   // Escape carriage returns
+		Result = Result.Replace(TEXT("\t"), TEXT("\\t"));   // Escape tabs
+		return Result;
+	};
+	
 	FString Code = TEXT("// Unreal Engine 5 HTTP Request Code\n");
 	Code += TEXT("// Add this to your C++ class\n\n");
 	Code += TEXT("#include \"HttpModule.h\"\n");
@@ -175,20 +188,20 @@ FString FExternalAPIHandler::GenerateIntegrationCode(const FAPIRequestDetails& D
 	Code += TEXT("{\n");
 	Code += TEXT("\t// Create HTTP request\n");
 	Code += TEXT("\tTSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();\n");
-	Code += FString::Printf(TEXT("\tHttpRequest->SetURL(TEXT(\"%s\"));\n"), *Details.Endpoint);
-	Code += FString::Printf(TEXT("\tHttpRequest->SetVerb(TEXT(\"%s\"));\n"), *Details.Method);
+	Code += FString::Printf(TEXT("\tHttpRequest->SetURL(TEXT(\"%s\"));\n"), *EscapeForCpp(Details.Endpoint));
+	Code += FString::Printf(TEXT("\tHttpRequest->SetVerb(TEXT(\"%s\"));\n"), *EscapeForCpp(Details.Method));
 	
 	Code += TEXT("\t\n\t// Set headers\n");
 	for (const auto& Header : Details.Headers)
 	{
 		Code += FString::Printf(TEXT("\tHttpRequest->SetHeader(TEXT(\"%s\"), TEXT(\"%s\"));\n"), 
-			*Header.Key, *Header.Value);
+			*EscapeForCpp(Header.Key), *EscapeForCpp(Header.Value));
 	}
 	
 	if (!Details.Body.IsEmpty())
 	{
 		Code += TEXT("\t\n\t// Set request body\n");
-		Code += FString::Printf(TEXT("\tHttpRequest->SetContentAsString(TEXT(\"%s\"));\n"), *Details.Body);
+		Code += FString::Printf(TEXT("\tHttpRequest->SetContentAsString(TEXT(\"%s\"));\n"), *EscapeForCpp(Details.Body));
 	}
 	
 	Code += TEXT("\t\n\t// Set response callback\n");
