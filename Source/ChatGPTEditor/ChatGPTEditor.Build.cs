@@ -27,7 +27,8 @@ public class ChatGPTEditor : ModuleRules
 				"LevelEditor",
 				"HTTP",
 				"Json",
-				"JsonUtilities"
+				"JsonUtilities",
+				"PythonScriptPlugin"
 			}
 		);
 	}

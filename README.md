@@ -9,6 +9,9 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 - **Security-First Design**: Permission toggles for potentially destructive operations
 - **Conversation History**: Maintains context throughout your ChatGPT conversation
 - **Environment-based API Keys**: Secure API key storage using environment variables
+- **Editor Console Commands**: Execute Unreal Editor console commands via natural language (with permission gating)
+- **Python Scripting**: Generate and execute Python scripts to automate Editor tasks (with preview and confirmation)
+- **Audit Logging**: All console and scripting actions are logged to Saved/ChatGPTEditor/audit.log
 
 ## Installation
 
@@ -66,6 +69,117 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 2. Click "Send" to submit your message to ChatGPT
 3. Responses will appear in the conversation history area
 4. Click "Clear" to start a new conversation
+
+### Editor Console Commands
+
+The plugin can execute Unreal Editor console commands through natural language requests. This feature requires the **Allow Console Commands** permission to be enabled.
+
+#### How to Use Console Commands
+
+1. **Enable the permission**: Check "Allow Console Commands" in the plugin window
+2. **Request a command**: Ask ChatGPT to execute a console command
+   - Example: "Execute the console command `stat fps`"
+   - Example: "Run the command to show FPS statistics"
+3. **Review and confirm**: You'll be prompted to confirm the command before execution
+4. **Check the log**: All command executions are logged to `Saved/ChatGPTEditor/audit.log`
+
+#### Example Console Command Requests
+
+```
+User: "Execute the console command `stat fps`"
+Assistant: [Detects command and prompts for confirmation]
+
+User: "Show me the current screen percentage"
+Assistant: [May suggest the command `r.screenpercentage`]
+
+User: "Run `viewmode unlit`"
+Assistant: [Extracts and executes the command with confirmation]
+```
+
+#### Safe Commands
+
+These commands are considered safe and execute without additional warnings:
+- `stat fps`, `stat unit`, `stat game`, `stat scenerendering`
+- `showflag`, `viewmode`
+- `r.screenpercentage`, `t.maxfps`
+- `help`, `ke *` (key bindings)
+
+#### Blacklisted Commands
+
+The following commands are never allowed for security:
+- `exit`, `quit`
+- `crashdebug`, `debug crash`
+- `obj delete`, `deleteall`, `destroyall`
+
+### Python Scripting
+
+The plugin can generate and execute Python scripts to automate Editor tasks. This feature requires the **Allow Console Commands** permission and the Python Editor Script Plugin to be enabled.
+
+#### Prerequisites for Python Scripting
+
+1. **Enable Python Editor Script Plugin**:
+   - Go to Edit → Plugins
+   - Search for "Python Editor Script Plugin"
+   - Enable it and restart the editor
+
+2. **Enable the permission**: Check "Allow Console Commands" in the ChatGPT window
+
+#### How to Use Python Scripting
+
+1. **Request a script**: Ask ChatGPT to write a Python script for your task
+   - Example: "Write a Python script to list all actors in the current level"
+   - Example: "Generate a script to automate asset organization"
+2. **Preview the script**: The script will be shown in a preview dialog
+3. **Review warnings**: Any potentially dangerous operations will be flagged
+4. **Confirm execution**: Approve the script to execute it
+5. **Check results**: Script output appears in the Output Log
+6. **Check the audit log**: All executions are logged to `Saved/ChatGPTEditor/audit.log`
+
+#### Example Python Script Requests
+
+```
+User: "Write a Python script to list all actors in the level"
+Assistant: [Generates Python script with unreal module imports]
+System: [Shows preview and security warnings]
+User: [Confirms execution]
+System: [Executes script and shows results]
+```
+
+```
+User: "Generate a script to automate creating folders in the Content Browser"
+Assistant: [Generates script using unreal.EditorAssetLibrary]
+System: [Warns about asset modification operations]
+User: [Reviews and confirms]
+```
+
+#### Script Security
+
+The plugin validates scripts for potentially dangerous operations:
+- File system access (`os`, `sys`, `subprocess`)
+- Code execution functions (`exec`, `eval`, `compile`)
+- Destructive operations (`delete`, `remove`, `destroy`)
+
+You'll be warned about these operations before execution.
+
+### Audit Logging
+
+All console commands and Python scripts are logged for security and debugging purposes.
+
+**Log Location**: `[ProjectRoot]/Saved/ChatGPTEditor/audit.log`
+
+**Log Format**:
+```
+[2025-10-26 15:30:45] CONSOLE_COMMAND: stat fps | Success: YES
+[2025-10-26 15:31:12] PYTHON_SCRIPT: import unreal; unreal.log("Hello") | Success: YES
+[2025-10-26 15:32:05] CONSOLE_COMMAND: dangerous_command | Success: NO | Error: User declined confirmation
+```
+
+**What's Logged**:
+- Timestamp of execution
+- Type of operation (CONSOLE_COMMAND or PYTHON_SCRIPT)
+- The command or script content (truncated for long scripts)
+- Success/failure status
+- Error messages (if applicable)
 
 ### Security Permissions
 
@@ -187,12 +301,28 @@ ChatGPTEditor/
 - You've exceeded your API rate limit or quota
 - Check your OpenAI account usage and billing settings
 
+### Console Command Not Executing
+
+- Ensure "Allow Console Commands" permission is enabled
+- Check that the command is not blacklisted
+- Verify the command syntax is correct for Unreal Engine
+- Check the audit log at `Saved/ChatGPTEditor/audit.log` for error details
+
+### Python Script Not Executing
+
+- Verify the "Python Editor Script Plugin" is enabled (Edit → Plugins)
+- Ensure "Allow Console Commands" permission is enabled
+- Restart the editor after enabling the Python plugin
+- Check the Output Log for Python execution errors
+- Review the audit log at `Saved/ChatGPTEditor/audit.log`
+
 ## Known Limitations
 
-- **Current implementation is read-only**: The permission toggles are UI elements for future functionality. No destructive operations are currently implemented.
+- **Python dependency**: Python scripting requires the Python Editor Script Plugin to be enabled
 - **No local AI support**: Requires internet connection and OpenAI API access
 - **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
 - **No streaming responses**: Responses arrive all at once rather than streaming
+- **Command parsing**: Natural language command extraction may not work for all phrasings
 
 ## Future Enhancements
 
@@ -242,7 +372,16 @@ For issues, questions, or suggestions:
 
 ## Version History
 
-### 1.0.0 (Current)
+### 1.1.0 (Current)
+- Added Editor Console Command execution with natural language support
+- Added Python script generation and execution
+- Implemented audit logging for all console and scripting actions
+- Added command whitelist/blacklist security system
+- Added script validation and security warnings
+- Enhanced permission system with actual functionality
+- Added comprehensive documentation and usage examples
+
+### 1.0.0
 - Initial release
 - Basic ChatGPT integration
 - Security permission toggles (UI only)

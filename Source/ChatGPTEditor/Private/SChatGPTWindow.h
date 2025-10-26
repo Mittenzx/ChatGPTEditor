@@ -9,11 +9,14 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class FChatGPTConsoleHandler;
+class FChatGPTPythonHandler;
 
 /**
  * Slate widget for ChatGPT window
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
+ * Supports console command execution and Python script generation
  */
 class SChatGPTWindow : public SCompoundWidget
 {
@@ -24,6 +27,9 @@ public:
 
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
+	
+	/** Destructor */
+	virtual ~SChatGPTWindow();
 
 private:
 	// UI event handlers
@@ -33,6 +39,12 @@ private:
 	// HTTP request handling
 	void SendRequestToOpenAI(const FString& UserMessage);
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	
+	// Response processing
+	void ProcessAssistantResponse(const FString& Response);
+	bool TryExecuteConsoleCommand(const FString& Response);
+	bool TryExecutePythonScript(const FString& Response);
+	FString ExtractCodeBlock(const FString& Response, const FString& Language) const;
 	
 	// Helper functions
 	void AppendMessage(const FString& Role, const FString& Message);
@@ -63,4 +75,8 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	
+	// Console and scripting handlers
+	TSharedPtr<FChatGPTConsoleHandler> ConsoleHandler;
+	TSharedPtr<FChatGPTPythonHandler> PythonHandler;
 };

@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SChatGPTWindow.h"
+#include "ChatGPTConsoleHandler.h"
+#include "ChatGPTPythonHandler.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SButton.h"
@@ -22,6 +24,10 @@
 void SChatGPTWindow::Construct(const FArguments& InArgs)
 {
 	ConversationHistory = TEXT("");
+	
+	// Initialize handlers
+	ConsoleHandler = MakeShared<FChatGPTConsoleHandler>();
+	PythonHandler = MakeShared<FChatGPTPythonHandler>();
 	
 	ChildSlot
 	[
@@ -181,6 +187,13 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 	];
 }
 
+SChatGPTWindow::~SChatGPTWindow()
+{
+	// Cleanup handlers
+	ConsoleHandler.Reset();
+	PythonHandler.Reset();
+}
+
 FReply SChatGPTWindow::OnSendMessageClicked()
 {
 	FString UserMessage = MessageInputBox->GetText().ToString();
@@ -317,6 +330,9 @@ void SChatGPTWindow::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
 		Messages.Add(AssistantMessageObject);
 		
 		AppendMessage(TEXT("Assistant"), AssistantMessage);
+		
+		// Process the response for executable content
+		ProcessAssistantResponse(AssistantMessage);
 	}
 	else
 	{
@@ -425,6 +441,144 @@ ECheckBoxState SChatGPTWindow::GetConsoleCommandPermission() const
 ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 {
 	return bAllowFileIO ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void SChatGPTWindow::ProcessAssistantResponse(const FString& Response)
+{
+	// Try to execute console command if permissions allow
+	if (bAllowConsoleCommands)
+	{
+		if (TryExecuteConsoleCommand(Response))
+		{
+			return; // Command was executed
+		}
+	}
+	
+	// Try to execute Python script if permissions allow
+	if (bAllowConsoleCommands) // Reusing console permission for now
+	{
+		TryExecutePythonScript(Response);
+	}
+}
+
+bool SChatGPTWindow::TryExecuteConsoleCommand(const FString& Response)
+{
+	if (!ConsoleHandler.IsValid())
+	{
+		return false;
+	}
+	
+	// Look for console command markers in the response
+	FString LowerResponse = Response.ToLower();
+	if (!LowerResponse.Contains(TEXT("console command")) && 
+		!LowerResponse.Contains(TEXT("execute command")) &&
+		!LowerResponse.Contains(TEXT("run command")))
+	{
+		return false;
+	}
+	
+	// Try to extract command from code blocks
+	FString Command = ExtractCodeBlock(Response, TEXT("console"));
+	if (Command.IsEmpty())
+	{
+		Command = ExtractCodeBlock(Response, TEXT(""));
+	}
+	
+	if (!Command.IsEmpty())
+	{
+		AppendMessage(TEXT("System"), FString::Printf(TEXT("Attempting to execute console command: %s"), *Command));
+		bool bSuccess = ConsoleHandler->ExecuteCommand(Command, true);
+		
+		if (bSuccess)
+		{
+			AppendMessage(TEXT("System"), TEXT("Command executed successfully."));
+		}
+		else
+		{
+			AppendMessage(TEXT("System"), TEXT("Command execution failed or was cancelled."));
+		}
+		
+		return true;
+	}
+	
+	return false;
+}
+
+bool SChatGPTWindow::TryExecutePythonScript(const FString& Response)
+{
+	if (!PythonHandler.IsValid())
+	{
+		return false;
+	}
+	
+	// Check if this looks like a Python script response
+	if (!PythonHandler->IsPythonScriptRequest(Response))
+	{
+		return false;
+	}
+	
+	// Try to extract Python code from code blocks
+	FString Script = ExtractCodeBlock(Response, TEXT("python"));
+	if (Script.IsEmpty())
+	{
+		Script = ExtractCodeBlock(Response, TEXT("py"));
+	}
+	
+	if (!Script.IsEmpty())
+	{
+		AppendMessage(TEXT("System"), TEXT("Python script detected. Preparing for execution..."));
+		bool bSuccess = PythonHandler->ExecuteScript(Script, true);
+		
+		if (bSuccess)
+		{
+			AppendMessage(TEXT("System"), TEXT("Script executed successfully."));
+		}
+		else
+		{
+			AppendMessage(TEXT("System"), TEXT("Script execution failed or was cancelled."));
+		}
+		
+		return true;
+	}
+	
+	return false;
+}
+
+FString SChatGPTWindow::ExtractCodeBlock(const FString& Response, const FString& Language) const
+{
+	// Look for markdown code blocks with optional language specifier
+	FString StartMarker = Language.IsEmpty() ? TEXT("```") : FString::Printf(TEXT("```%s"), *Language);
+	FString EndMarker = TEXT("```");
+	
+	int32 StartPos = Response.Find(StartMarker);
+	if (StartPos == INDEX_NONE)
+	{
+		return TEXT("");
+	}
+	
+	// Move past the start marker and newline
+	StartPos += StartMarker.Len();
+	if (StartPos < Response.Len() && (Response[StartPos] == '\n' || Response[StartPos] == '\r'))
+	{
+		StartPos++;
+		if (StartPos < Response.Len() && Response[StartPos] == '\n')
+		{
+			StartPos++;
+		}
+	}
+	
+	// Find the end marker
+	int32 EndPos = Response.Find(EndMarker, ESearchCase::IgnoreCase, ESearchDir::FromStart, StartPos);
+	if (EndPos == INDEX_NONE)
+	{
+		return TEXT("");
+	}
+	
+	// Extract the code
+	FString Code = Response.Mid(StartPos, EndPos - StartPos);
+	Code.TrimStartAndEndInline();
+	
+	return Code;
 }
 
 #undef LOCTEXT_NAMESPACE
