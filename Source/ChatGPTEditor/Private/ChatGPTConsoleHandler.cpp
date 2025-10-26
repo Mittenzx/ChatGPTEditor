@@ -120,7 +120,21 @@ bool FChatGPTConsoleHandler::IsCommandSafe(const FString& Command) const
 	// Check for destructive patterns
 	for (const FString& Pattern : DestructivePatterns)
 	{
-		if (LowerCommand.Contains(Pattern.ToLower()))
+		FString LowerPattern = Pattern.ToLower();
+		
+		// Special handling for "set " to ensure it's actually followed by whitespace
+		if (LowerPattern == TEXT("set "))
+		{
+			// Match "set " followed by any whitespace character
+			if (LowerCommand.Contains(TEXT("set ")) || 
+				LowerCommand.Contains(TEXT("set\t")) || 
+				LowerCommand.Contains(TEXT("set\n")) ||
+				LowerCommand.Contains(TEXT("set\r")))
+			{
+				return false;
+			}
+		}
+		else if (LowerCommand.Contains(LowerPattern))
 		{
 			return false;
 		}
