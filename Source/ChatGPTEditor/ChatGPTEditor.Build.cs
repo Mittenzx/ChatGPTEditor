@@ -28,6 +28,11 @@ public class ChatGPTEditor : ModuleRules
 				"HTTP",
 				"Json",
 				"JsonUtilities",
+				"BlueprintGraph",
+				"Kismet",
+				"KismetCompiler",
+				"GraphEditor",
+				"DesktopPlatform",
 				"AssetTools",
 				"AssetRegistry"
 			}

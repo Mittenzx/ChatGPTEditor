@@ -168,6 +168,66 @@ All interactive elements include helpful tooltips:
 - 💡 Tips and helpful information are highlighted
 - ⌨️ Keyboard shortcuts reference is always visible at the bottom
 
+### Blueprint Scripting Assistant
+
+The plugin includes a Blueprint Scripting Assistant feature that allows you to generate and explain Blueprint logic using natural language:
+
+#### Generating Blueprints
+
+1. **Enable Asset Write Permission**: The "Allow Asset Write Operations" toggle must be enabled to generate Blueprints
+2. **Enter your prompt**: In the "Blueprint Scripting Assistant" section, describe the Blueprint logic you want to create
+   - Example: "Create a health pickup that restores 25 health points when the player overlaps it"
+3. **Click "Generate Blueprint"**: The system will send your request to ChatGPT
+4. **Review the preview**: A preview dialog will show you:
+   - Your original request
+   - A description of the generated Blueprint
+   - List of nodes that will be created
+   - Connections between nodes
+   - A security warning
+5. **Approve or Reject**: 
+   - Click "Approve & Create" to proceed with Blueprint creation
+   - Click "Reject" to cancel the operation
+6. **All actions are logged**: Every generation request, preview, and approval/rejection is recorded in the audit log
+
+**Security Notes:**
+- All Blueprint generation requires manual preview and approval
+- No code is executed without your explicit confirmation
+- Requires "Allow Asset Write Operations" permission to be enabled
+- All operations are logged in the audit log
+
+#### Explaining Blueprints
+
+1. **Enter Blueprint name**: In the Blueprint name field, type the name of a Blueprint you want explained
+2. **Click "Explain Blueprint"**: The system will request an explanation from ChatGPT
+3. **View explanation**: The explanation will appear in the conversation history with:
+   - A summary of the Blueprint's purpose
+   - Step-by-step breakdown of its logic
+4. **All explanations are logged**: Every explanation request is recorded in the audit log
+
+**Note**: This feature provides AI-generated explanations based on the Blueprint name. For actual Blueprint analysis, the Blueprint would need to be selected in the editor (future enhancement).
+
+#### Audit Log
+
+The plugin maintains a comprehensive audit log of all Blueprint Scripting Assistant activities:
+
+- **What's logged**:
+  - All Blueprint generation requests
+  - All Blueprint explanation requests
+  - All preview dialogs shown
+  - All user approvals and rejections
+  - Timestamps for all operations
+
+- **Exporting the log**:
+  1. Click "Export Audit Log" in the Blueprint Scripting Assistant section
+  2. Choose a location to save the log file
+  3. The log will be exported as a text file with all recorded activities
+
+- **Use cases**:
+  - Security compliance and auditing
+  - Tracking AI-assisted modifications
+  - Debugging and troubleshooting
+  - Team collaboration and review
+
 ### Security Permissions
 
 The plugin includes three permission toggles that are **disabled by default** for your safety:
@@ -175,8 +235,9 @@ The plugin includes three permission toggles that are **disabled by default** fo
 #### 🔒 Allow Asset Write Operations (DANGEROUS)
 - **Default**: OFF
 - **Risk**: Can modify or delete project assets
-- **When to enable**: Only when you explicitly want ChatGPT to create or modify assets
+- **When to enable**: Required for Blueprint generation feature
 - **Warning**: Always backup your project before enabling
+- **Blueprint Assistant**: Must be enabled to generate Blueprints
 
 #### 🔒 Allow Console Commands (DANGEROUS)
 - **Default**: OFF
@@ -253,6 +314,7 @@ The plugin includes three permission toggles that are **disabled by default** fo
 
 - **Module Type**: Editor-only module (not included in packaged builds)
 - **Loading Phase**: Default
+- **Dependencies**: Core, CoreUObject, Engine, Slate, SlateCore, InputCore, UnrealEd, LevelEditor, HTTP, Json, JsonUtilities, BlueprintGraph, Kismet, KismetCompiler, GraphEditor
 - **Dependencies**: Core, CoreUObject, Engine, Slate, SlateCore, InputCore, UnrealEd, LevelEditor, HTTP, Json, JsonUtilities, AssetTools, AssetRegistry
 
 ### API Integration
@@ -261,7 +323,19 @@ The plugin includes three permission toggles that are **disabled by default** fo
 - **Model**: GPT-3.5-turbo
 - **Authentication**: Bearer token (from OPENAI_API_KEY environment variable)
 - **Max Tokens**: 1000 per request
-- **Temperature**: 0.7
+- **Temperature**: 
+  - 0.7 for general conversation
+  - 0.3 for Blueprint generation (more deterministic)
+  - 0.5 for Blueprint explanation (balanced)
+
+### Blueprint Scripting Assistant Details
+
+- **Preview System**: All Blueprint generation requests show a preview dialog before creation
+- **Approval Required**: User must explicitly approve each Blueprint generation
+- **Audit Logging**: All operations are logged with timestamps and details
+- **Permission-Based**: Requires "Allow Asset Write Operations" to generate Blueprints
+- **AI-Powered**: Uses GPT-3.5-turbo to interpret natural language and generate Blueprint descriptions
+- **Safety-First**: No direct code execution; all changes require manual approval
 
 ### File Structure
 
@@ -277,6 +351,10 @@ ChatGPTEditor/
 │           ├── ChatGPTEditor.cpp            # Module implementation
 │           ├── SChatGPTWindow.h             # Slate window header
 │           ├── SChatGPTWindow.cpp           # Slate window implementation
+│           ├── SBlueprintAssistantPanel.h   # Blueprint assistant UI header
+│           ├── SBlueprintAssistantPanel.cpp # Blueprint assistant UI implementation
+│           ├── BlueprintAuditLog.h          # Audit logging system header
+│           └── BlueprintAuditLog.cpp        # Audit logging system implementation
 │           ├── AssetAutomation.h            # Asset automation parser
 │           └── AssetAutomation.cpp          # Asset automation implementation
 ├── Saved/
@@ -359,6 +437,11 @@ The ChatGPTEditor plugin is designed with accessibility in mind:
 
 ## Known Limitations
 
+- **Blueprint creation is conceptual**: The current implementation shows how Blueprint generation would work with preview and approval, but actual Blueprint node creation requires deeper integration with Blueprint editor APIs
+- **No local AI support**: Requires internet connection and OpenAI API access
+- **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
+- **No streaming responses**: Responses arrive all at once rather than streaming
+- **Blueprint explanation is AI-based**: Explanations are generated by AI based on Blueprint names, not actual Blueprint analysis
 - **Asset automation requires specific command formats**: Commands must follow the documented patterns (e.g., "Create material X")
 - **No local AI support**: Requires internet connection and OpenAI API access
 - **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
@@ -368,12 +451,12 @@ The ChatGPTEditor plugin is designed with accessibility in mind:
 ## Future Enhancements
 
 Potential features for future versions:
+- Full Blueprint node creation using Blueprint editor APIs
+- Visual Blueprint selection for explanation (instead of name-based)
 - Streaming response support
 - Custom system prompts
 - Conversation save/load functionality
-- Integration with Unreal's Blueprint system
-- Code generation assistance
-- Asset analysis and recommendations
+- Advanced Blueprint refactoring suggestions
 - Multi-model support (GPT-4, etc.)
 - Screen reader support (ARIA-like attributes)
 - High-contrast theme toggle
@@ -386,6 +469,7 @@ Contributions are welcome! Please ensure any pull requests:
 - Include appropriate security warnings for new features
 - Update this README with relevant documentation
 - Test thoroughly before submission
+- Include audit logging for any AI-assisted operations
 
 ## License
 
@@ -416,6 +500,14 @@ For issues, questions, or suggestions:
 
 ## Version History
 
+### 1.1.0 (Current)
+- Added Blueprint Scripting Assistant feature
+- Blueprint generation with preview and approval workflow
+- Blueprint explanation functionality
+- Comprehensive audit logging system
+- Security-first design with manual approval required
+- Export audit logs for compliance and review
+- UE5.5 compatibility maintained
 ### 1.1.0 (Current - UX, Accessibility & Asset Automation)
 ### 1.1.0 (Current - UX & Accessibility Update)
 - ✨ NEW: Keyboard shortcuts for common actions (Ctrl+Enter, Ctrl+L, etc.)
@@ -435,10 +527,12 @@ For issues, questions, or suggestions:
 ### 1.0.0
 - Initial release
 - Basic ChatGPT integration
-- Security permission toggles (UI only)
+- Security permission toggles
 - Conversation history
 - Environment-based API key storage
 
 ---
 
 **Remember**: This plugin is in beta. Always backup your project before use and test in a non-production environment first.
+
+**Security Notice for Blueprint Scripting Assistant**: All Blueprint generation requires manual preview and approval. No code is executed without your explicit confirmation. All operations are logged in the audit log for security compliance.

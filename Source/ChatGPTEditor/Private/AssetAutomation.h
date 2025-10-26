@@ -95,6 +95,13 @@ public:
 	static bool ExecuteOperation(const FAssetOperation& Operation, bool bAllowAssetWrite);
 
 	/**
+	 * Execute multiple asset operations with user confirmation
+	 * @param Operations The operations to execute
+	 * @param bAllowAssetWrite Whether asset write operations are enabled
+	 */
+	static void ExecuteCommands(const TArray<FAssetOperation>& Operations, bool bAllowAssetWrite);
+
+	/**
 	 * Show confirmation dialog for an asset operation
 	 * @param Operation The operation to confirm
 	 * @return True if user confirmed

@@ -42,6 +42,34 @@ Saved/
 *.exe
 *.out
 *.app
+*.ipa
+
+# Unreal Engine Specific
+*.uasset
+*.umap
+
+# OS Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary Files
+*.swp
+*.swo
+*~
+*.tmp
+*.log
+
+# User Specific
+*.user
+*.userprefs
+*.pidb
+
+# Mono / .NET
+.mono/
+Temp/
+Logs/
 
 # Backup files
 *.bak
