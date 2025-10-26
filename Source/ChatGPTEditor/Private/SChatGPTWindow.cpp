@@ -9,7 +9,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SSeparator.h"
-#include "EditorStyleSet.h"
+#include "Styling/AppStyle.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
@@ -253,8 +253,8 @@ void SChatGPTWindow::SendRequestToOpenAI(const FString& UserMessage)
 	HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *GetAPIKey()));
 	HttpRequest->SetContentAsString(RequestBodyString);
 	
-	// Bind response callback
-	HttpRequest->OnProcessRequestComplete().BindRaw(this, &SChatGPTWindow::OnResponseReceived);
+	// Bind response callback - Use BindSP for safer widget lifetime management
+	HttpRequest->OnProcessRequestComplete().BindSP(this, &SChatGPTWindow::OnResponseReceived);
 	
 	// Send request
 	HttpRequest->ProcessRequest();

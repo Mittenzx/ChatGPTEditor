@@ -16,10 +16,10 @@ static const FName ChatGPTEditorTabName("ChatGPTEditor");
 
 void FChatGPTEditorModule::StartupModule()
 {
-	// Register tab spawner
+	// Register tab spawner - Make it visible in the Window menu
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ChatGPTEditorTabName, FOnSpawnTab::CreateRaw(this, &FChatGPTEditorModule::OnSpawnPluginTab))
 		.SetDisplayName(LOCTEXT("FChatGPTEditorTabTitle", "ChatGPT"))
-		.SetMenuType(ETabSpawnerMenuType::Hidden)
+		.SetMenuType(ETabSpawnerMenuType::Enabled)
 		.SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory());
 }
 
@@ -42,12 +42,6 @@ TSharedRef<SDockTab> FChatGPTEditorModule::OnSpawnPluginTab(const FSpawnTabArgs&
 void FChatGPTEditorModule::PluginButtonClicked()
 {
 	FGlobalTabmanager::Get()->TryInvokeTab(ChatGPTEditorTabName);
-}
-
-void FChatGPTEditorModule::RegisterMenus()
-{
-	// Register menu extensions if needed
-	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FChatGPTEditorModule::PluginButtonClicked));
 }
 
 #undef LOCTEXT_NAMESPACE
