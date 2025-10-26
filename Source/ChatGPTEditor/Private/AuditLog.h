@@ -32,12 +32,15 @@ struct FAuditLogEntry
 
 	FString ToString() const
 	{
+		FString FileInfo = FilePath.IsEmpty() ? TEXT("") : FString::Printf(TEXT(" (File: %s)"), *FilePath);
+		FString DetailInfo = Details.IsEmpty() ? TEXT("") : FString::Printf(TEXT(" - %s"), *Details);
+		
 		return FString::Printf(TEXT("[%s] %s: %s%s%s"),
 			*Timestamp.ToString(TEXT("%Y-%m-%d %H:%M:%S")),
 			bSuccess ? TEXT("SUCCESS") : TEXT("FAILED"),
 			*Operation,
-			FilePath.IsEmpty() ? TEXT("") : FString::Printf(TEXT(" (File: %s)"), *FilePath).GetCharArray().GetData(),
-			Details.IsEmpty() ? TEXT("") : FString::Printf(TEXT(" - %s"), *Details).GetCharArray().GetData()
+			*FileInfo,
+			*DetailInfo
 		);
 	}
 };
