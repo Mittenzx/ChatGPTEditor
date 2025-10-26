@@ -3,6 +3,7 @@
 #include "SChatGPTWindow.h"
 #include "SBlueprintAssistantPanel.h"
 #include "BlueprintAuditLog.h"
+#include "AssetAutomation.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SButton.h"
@@ -21,6 +22,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Misc/FileHelper.h"
 #include "DesktopPlatformModule.h"
+#include "Framework/Commands/InputChord.h"
 
 #define LOCTEXT_NAMESPACE "SChatGPTWindow"
 
@@ -405,6 +407,9 @@ void SChatGPTWindow::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
 		Messages.Add(AssistantMessageObject);
 		
 		AppendMessage(TEXT("Assistant"), AssistantMessage);
+		
+		// Process asset automation if enabled
+		ProcessAssetAutomation(AssistantMessage);
 	}
 	else
 	{
@@ -988,6 +993,105 @@ FBlueprintExplanation SChatGPTWindow::ParseBlueprintExplanationResponse(const FS
 	}
 	
 	return Explanation;
+}
+
+// Keyboard shortcut handling
+FReply SChatGPTWindow::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+{
+	// Ctrl+Enter to send message
+	if (InKeyEvent.GetKey() == EKeys::Enter && InKeyEvent.IsControlDown())
+	{
+		return OnSendMessageClicked();
+	}
+	
+	// Ctrl+L to clear history
+	if (InKeyEvent.GetKey() == EKeys::L && InKeyEvent.IsControlDown())
+	{
+		return OnClearHistoryClicked();
+	}
+	
+	// Ctrl++ to increase font size
+	if ((InKeyEvent.GetKey() == EKeys::Equals || InKeyEvent.GetKey() == EKeys::Add) && InKeyEvent.IsControlDown())
+	{
+		return OnIncreaseFontSize();
+	}
+	
+	// Ctrl+- to decrease font size
+	if ((InKeyEvent.GetKey() == EKeys::Hyphen || InKeyEvent.GetKey() == EKeys::Subtract) && InKeyEvent.IsControlDown())
+	{
+		return OnDecreaseFontSize();
+	}
+	
+	// Ctrl+0 to reset font size
+	if (InKeyEvent.GetKey() == EKeys::Zero && InKeyEvent.IsControlDown())
+	{
+		return OnResetFontSize();
+	}
+	
+	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
+}
+
+// Font size management
+FReply SChatGPTWindow::OnIncreaseFontSize()
+{
+	if (FontSize < MaxFontSize)
+	{
+		FontSize++;
+		UpdateFontSize();
+	}
+	return FReply::Handled();
+}
+
+FReply SChatGPTWindow::OnDecreaseFontSize()
+{
+	if (FontSize > MinFontSize)
+	{
+		FontSize--;
+		UpdateFontSize();
+	}
+	return FReply::Handled();
+}
+
+FReply SChatGPTWindow::OnResetFontSize()
+{
+	FontSize = DefaultFontSize;
+	UpdateFontSize();
+	return FReply::Handled();
+}
+
+void SChatGPTWindow::UpdateFontSize()
+{
+	// The font size is updated through TAttribute binding in the UI
+	// This just triggers a re-evaluation
+	if (ConversationHistoryBox.IsValid())
+	{
+		ConversationHistoryBox->Invalidate(EInvalidateWidget::Layout);
+	}
+}
+
+FText SChatGPTWindow::GetFontSizeButtonText() const
+{
+	return FText::Format(LOCTEXT("FontSizeDisplay", "{0}pt"), FontSize);
+}
+
+// Asset automation processing
+void SChatGPTWindow::ProcessAssetAutomation(const FString& Response)
+{
+	if (!bAllowAssetWrite)
+	{
+		// Asset automation is disabled
+		return;
+	}
+	
+	// Parse and execute asset commands
+	FAssetAutomation Automation;
+	TArray<FAssetOperation> Operations = Automation.ParseResponse(Response);
+	
+	if (Operations.Num() > 0)
+	{
+		AppendMessage(TEXT("System"), FString::Printf(TEXT("Detected %d asset operation(s) in response."), Operations.Num()));
+		Automation.ExecuteCommands(Operations);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

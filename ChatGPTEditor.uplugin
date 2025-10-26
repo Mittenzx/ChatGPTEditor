@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
 	"Version": 2,
-	"VersionName": "1.1",
+	"VersionName": "1.2",
 	"FriendlyName": "ChatGPT Editor",
-	"Description": "Adds a Slate-based Editor tab for ChatGPT integration with OpenAI API. Includes Blueprint Scripting Assistant with preview/approval workflow, audit logging, and security features.",
+	"Description": "Adds a Slate-based Editor tab for ChatGPT integration with OpenAI API. Includes Blueprint Scripting Assistant, Asset Automation, accessibility features, keyboard shortcuts, audit logging, and security controls.",
 	"Category": "Editor",
 	"CreatedBy": "ChatGPTEditor Contributors",
 	"CreatedByURL": "",

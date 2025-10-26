@@ -32,7 +32,9 @@ public class ChatGPTEditor : ModuleRules
 				"Kismet",
 				"KismetCompiler",
 				"GraphEditor",
-				"DesktopPlatform"
+				"DesktopPlatform",
+				"AssetTools",
+				"AssetRegistry"
 			}
 		);
 	}

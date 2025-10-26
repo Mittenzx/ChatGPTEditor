@@ -9,6 +9,7 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class SButton;
 struct FBlueprintPreviewData;
 struct FBlueprintExplanation;
 
@@ -17,6 +18,8 @@ struct FBlueprintExplanation;
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
  * Includes Blueprint Scripting Assistant for generating and explaining Blueprints
+ * Includes Asset Automation for creating and managing Unreal Engine assets
+ * Includes accessibility features like adjustable font sizes and keyboard shortcuts
  */
 class SChatGPTWindow : public SCompoundWidget
 {
@@ -27,6 +30,9 @@ public:
 
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
+	
+	/** Handle keyboard input for shortcuts */
+	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 
 private:
 	// UI event handlers
@@ -35,6 +41,9 @@ private:
 	FReply OnGenerateBlueprintClicked();
 	FReply OnExplainBlueprintClicked();
 	FReply OnExportAuditLogClicked();
+	FReply OnIncreaseFontSize();
+	FReply OnDecreaseFontSize();
+	FReply OnResetFontSize();
 	
 	// HTTP request handling
 	void SendRequestToOpenAI(const FString& UserMessage);
@@ -48,6 +57,9 @@ private:
 	void DisplayBlueprintExplanation(const FBlueprintExplanation& Explanation);
 	FBlueprintPreviewData ParseBlueprintGenerationResponse(const FString& ResponseContent);
 	FBlueprintExplanation ParseBlueprintExplanationResponse(const FString& ResponseContent);
+	
+	// Asset automation
+	void ProcessAssetAutomation(const FString& Response);
 	
 	// Helper functions
 	void AppendMessage(const FString& Role, const FString& Message);
@@ -63,6 +75,10 @@ private:
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	
+	// Accessibility helpers
+	void UpdateFontSize();
+	FText GetFontSizeButtonText() const;
 
 private:
 	// UI widgets
@@ -71,6 +87,8 @@ private:
 	TSharedPtr<SScrollBox> ConversationScrollBox;
 	TSharedPtr<SEditableTextBox> BlueprintPromptBox;
 	TSharedPtr<SEditableTextBox> BlueprintNameBox;
+	TSharedPtr<SButton> SendButton;
+	TSharedPtr<SButton> ClearButton;
 	
 	// Conversation state
 	FString ConversationHistory;
@@ -83,4 +101,13 @@ private:
 	
 	// Blueprint assistant state
 	FString PendingBlueprintPrompt;
+	
+	// Accessibility settings
+	int32 FontSize = 10;
+	const int32 MinFontSize = 8;
+	const int32 MaxFontSize = 24;
+	const int32 DefaultFontSize = 10;
+	
+	// UI state
+	bool bIsRequestInProgress = false;
 };
