@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "ChatGPT Editor",
+	"Description": "Adds a Slate-based Editor tab for ChatGPT integration with OpenAI API. Includes security features and permission toggles for destructive operations.",
+	"Category": "Editor",
+	"CreatedBy": "ChatGPTEditor Contributors",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ChatGPTEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
