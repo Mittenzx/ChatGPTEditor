@@ -24,11 +24,17 @@ public:
 
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
+	
+	/** Handle keyboard input for shortcuts */
+	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 
 private:
 	// UI event handlers
 	FReply OnSendMessageClicked();
 	FReply OnClearHistoryClicked();
+	FReply OnIncreaseFontSize();
+	FReply OnDecreaseFontSize();
+	FReply OnResetFontSize();
 	
 	// HTTP request handling
 	void SendRequestToOpenAI(const FString& UserMessage);
@@ -51,12 +57,18 @@ private:
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	
+	// Accessibility helpers
+	void UpdateFontSize();
+	FText GetFontSizeButtonText() const;
 
 private:
 	// UI widgets
 	TSharedPtr<SEditableTextBox> MessageInputBox;
 	TSharedPtr<SMultiLineEditableTextBox> ConversationHistoryBox;
 	TSharedPtr<SScrollBox> ConversationScrollBox;
+	TSharedPtr<SButton> SendButton;
+	TSharedPtr<SButton> ClearButton;
 	
 	// Conversation state
 	FString ConversationHistory;
@@ -66,4 +78,13 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	
+	// Accessibility settings
+	int32 FontSize = 10;
+	const int32 MinFontSize = 8;
+	const int32 MaxFontSize = 24;
+	const int32 DefaultFontSize = 10;
+	
+	// UI state
+	bool bIsRequestInProgress = false;
 };
