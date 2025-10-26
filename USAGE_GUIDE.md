@@ -1,10 +1,15 @@
 # ChatGPTEditor Usage Guide
 
+This guide provides detailed information on how to use the ChatGPTEditor plugin effectively, with a focus on UX features, accessibility options, and asset automation.
 This guide provides detailed information on how to use the ChatGPTEditor plugin effectively, with a focus on UX features and accessibility options.
 
 ## Table of Contents
 1. [Getting Started](#getting-started)
 2. [Keyboard Shortcuts Reference](#keyboard-shortcuts-reference)
+3. [Asset Automation](#asset-automation)
+4. [Accessibility Features](#accessibility-features)
+5. [Tips and Best Practices](#tips-and-best-practices)
+6. [Troubleshooting](#troubleshooting)
 3. [Accessibility Features](#accessibility-features)
 4. [Tips and Best Practices](#tips-and-best-practices)
 5. [Troubleshooting](#troubleshooting)
@@ -47,6 +52,54 @@ The plugin provides several keyboard shortcuts for efficient workflow:
 |----------|--------|-------------|
 | **Tab** | Next Element | Move focus to next UI element |
 | **Shift+Tab** | Previous Element | Move focus to previous UI element |
+
+## Asset Automation
+
+### Enabling Asset Automation
+
+1. Check the "Allow Asset Write Operations" checkbox in the plugin window
+2. Read and accept the security warning
+3. You can now use natural language commands to create and manage assets
+
+### Supported Commands
+
+**Creating Assets:**
+- `Create material MaterialName` - Creates a new material asset
+- `Create texture TextureName` - Creates a new texture asset  
+- `Create blueprint BlueprintName` - Creates a new blueprint asset
+
+**Managing Assets:**
+- `Rename OldName to NewName` - Renames an existing asset
+- `Delete AssetName` - Deletes an asset (requires extra confirmation)
+
+### Example Workflows
+
+**Example 1: Creating Multiple Assets**
+```
+You: "Create a material called M_Metal and a texture called T_MetalBase"
+
+ChatGPT: "I'll help you create those. Create material M_Metal. Create texture T_MetalBase."
+
+[System detects commands and shows confirmation dialogs]
+```
+
+**Example 2: Renaming an Asset**
+```
+You: "Rename M_OldMaterial to M_NewMaterial"
+
+ChatGPT: "I'll rename that for you. Rename M_OldMaterial to M_NewMaterial."
+
+[System shows confirmation with preview]
+```
+
+### Audit Logging
+
+All asset operations are automatically logged to `Saved/ChatGPTEditor/audit.log`:
+
+```
+[2024-10-26 15:30:45] User: JohnDoe | Operation: Create Material | Asset: M_Metal | Success: YES
+[2024-10-26 15:31:12] User: JohnDoe | Operation: Rename Asset | Asset: M_OldMaterial->M_NewMaterial | Success: YES
+```
 
 ## Accessibility Features
 
@@ -119,6 +172,14 @@ The plugin is fully accessible via keyboard:
 3. **Keep Context**: Don't clear history unless starting a completely new topic
 4. **Read Tooltips**: Hover over unfamiliar elements to learn their purpose
 
+### Asset Automation Best Practices
+
+1. **Enable Only When Needed**: Keep "Allow Asset Write Operations" disabled unless actively creating/modifying assets
+2. **Review Confirmations**: Always read the confirmation dialog before proceeding
+3. **Check Audit Log**: Regularly review the audit log to track changes
+4. **Backup First**: Create backups before using automation on important projects
+5. **Test First**: Try commands in a test project before using on production assets
+
 ### Accessibility Best Practices
 
 1. **Visual Comfort**:
@@ -159,6 +220,26 @@ The plugin is fully accessible via keyboard:
 2. Check that the input box is not empty
 3. Try clicking in the input box first, then using the shortcut
 4. On macOS, try Cmd instead of Ctrl
+
+### Asset Automation Not Working
+
+**Problem**: Commands are not being detected
+
+**Solutions**:
+1. Ensure "Allow Asset Write Operations" is checked
+2. Use exact command format (e.g., "Create material MaterialName")
+3. Check that ChatGPT includes the command in its response
+4. Review the conversation history for error messages
+
+### Asset Not Found
+
+**Problem**: "Asset not found" error when trying to rename/delete
+
+**Solutions**:
+1. Verify the asset name exactly matches an existing asset
+2. Check the Content Browser for the correct name
+3. Try using the full package path
+4. Ensure the asset is not already open in an editor
 
 ### Font Size Not Changing
 
@@ -226,6 +307,7 @@ The plugin is fully accessible via keyboard:
 2. **Quick Queries**: Use Ctrl+Enter for rapid back-and-forth
 3. **Reference**: Use increased font for code snippets ChatGPT provides
 4. **Documentation**: Ask about Unreal features while developing
+5. **Asset Creation**: Use natural language to quickly create placeholder assets
 
 ## Feedback and Support
 
@@ -236,4 +318,5 @@ Found an issue or have a suggestion?
 
 ---
 
+**Last Updated**: Version 1.1.0 (UX, Accessibility & Asset Automation Update)
 **Last Updated**: Version 1.1.0 (UX & Accessibility Update)
