@@ -1,0 +1,58 @@
+# Unreal Engine build files
+Binaries/
+Build/
+Intermediate/
+Saved/
+DerivedDataCache/
+
+# Visual Studio files
+.vs/
+*.sln
+*.suo
+*.user
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*.ncb
+*.sdf
+*.opensdf
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Rider files
+.idea/
+*.sln.iml
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug files
+*.dSYM/
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*~
+
+# User settings
+*.ini
