@@ -6,6 +6,11 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 
 - **Slate-based UI**: Clean, integrated Editor tab that fits naturally into the Unreal Editor workflow
 - **OpenAI Integration**: Direct communication with OpenAI's Chat Completions API (GPT-3.5-turbo)
+- **External API & Web Integration**: Connect to external REST APIs and web services via chat prompts
+- **Security-First Design**: Permission toggles for potentially destructive operations
+- **Preview & Approval System**: All external API requests require manual approval before execution
+- **Audit Logging**: Comprehensive logging of all API connections and code changes
+- **Code Generation**: Automatic generation of UE5 integration code for external APIs
 - **Test Automation & QA**: Generate, preview, and manage automated tests with natural language prompts
 - **Project File Management**: Edit project configuration files (DefaultEngine.ini, .uproject, etc.) using natural language
 - **Security-First Design**: Permission toggles for potentially destructive operations
@@ -604,8 +609,79 @@ The plugin includes four permission toggles that are **disabled by default** for
 - **Warning**: All changes require preview and confirmation, but can still affect your level
 - **Safety**: All operations are logged in the audit log and can be undone using Unreal's Undo system
 
+#### 🌐 Allow External API/Web Integration (REQUIRES APPROVAL)
+- **Default**: OFF
+- **Risk**: Can make HTTP requests to external web services and APIs
+- **When to enable**: When you want to integrate external REST APIs or web services into your UE5 project
+- **Security**: Every API request requires preview and manual approval before execution
+- **Logging**: All connections are logged to `Saved/ChatGPTEditor/audit.log`
+- **Features**:
+  - Preview all request details (endpoint, method, headers, body)
+  - Automatic generation of UE5-compatible integration code
+  - Audit trail of all approved and denied requests
+
 **Important**: Each permission requires explicit confirmation when enabled. You will see a warning dialog explaining the risks.
 
+### External API & Web Integration
+
+The External API integration feature allows you to connect Unreal Engine to external web services using natural language prompts.
+
+#### How to Use
+
+1. **Enable the permission**: Check "Allow External API/Web Integration" in the permissions section
+2. **Type your request**: Use natural language to describe what you want to do:
+   - "Fetch data from https://api.example.com/users"
+   - "Send a POST request to https://api.example.com/analytics with event data"
+   - "Get weather data from a REST API"
+3. **Review the preview**: A dialog will show you exactly what HTTP request will be made
+4. **Approve or deny**: Choose whether to execute the request
+5. **View results**: See the API response and generated UE5 integration code
+6. **Check audit log**: All requests are logged to `Saved/ChatGPTEditor/audit.log`
+
+#### Example Usage
+
+**Example 1: GET Request**
+```
+User: "Fetch data from https://jsonplaceholder.typicode.com/posts/1"
+
+System will:
+1. Parse the request
+2. Show preview with endpoint, method (GET), and headers
+3. Wait for your approval
+4. Execute the request
+5. Display the response
+6. Generate UE5 C++ code for integration
+7. Log everything to audit.log
+```
+
+**Example 2: POST Request**
+```
+User: "Send a POST request to https://api.example.com/events with analytics data"
+
+System will:
+1. Detect POST method
+2. Show preview dialog
+3. Wait for approval
+4. Execute if approved
+5. Provide integration code
+```
+
+#### Generated Code
+
+The plugin automatically generates UE5-compatible C++ code for any approved API request. This code includes:
+- Proper HTTP module setup
+- Request configuration (URL, method, headers)
+- Response handling
+- Error handling
+- Complete example ready to integrate into your project
+
+#### Security Features
+
+- **Preview First**: Every request shows a detailed preview before execution
+- **Manual Approval**: No request executes without explicit user approval
+- **Audit Logging**: Complete log of all attempts in `Saved/ChatGPTEditor/audit.log`
+- **Validation**: Automatic validation of URLs and HTTP methods
+- **No Auto-Execution**: External connections are never made automatically
 **Note on Documentation**: Even with File I/O enabled, all documentation changes are previewed and require your explicit approval before being written to disk.
 
 ## Security Best Practices
@@ -631,6 +707,9 @@ The plugin includes four permission toggles that are **disabled by default** for
 - Disable permissions immediately after use
 - Maintain regular backups before enabling destructive permissions
 - Test in a separate project first
+- **Review all API request previews carefully before approving**
+- **Check the audit log regularly** (`Saved/ChatGPTEditor/audit.log`)
+- **Verify external API endpoints** before approving requests
 - Review the audit log regularly to track asset operations
 
 ❌ **DON'T:**
@@ -638,6 +717,8 @@ The plugin includes four permission toggles that are **disabled by default** for
 - Leave permissions enabled when not in use
 - Use on production projects without thorough testing
 - Trust AI-generated code without review
+- **Approve API requests to unknown or untrusted endpoints**
+- **Share sensitive data in API requests without encryption**
 - Ignore confirmation dialogs - always review what will be created/modified
 
 ### Asset Automation Security
@@ -680,6 +761,9 @@ The plugin includes four permission toggles that are **disabled by default** for
 - **Test in isolated environments** before applying changes to production projects
 - **Monitor API usage** to detect unusual activity
 - **Keep the plugin updated** to receive security patches
+- **Regularly review audit logs** at `Saved/ChatGPTEditor/audit.log`
+- **Be cautious with external API integrations** - only connect to trusted services
+- **Never send sensitive data** through API requests without proper encryption and authorization
 - **Review the audit log** regularly to track all operations
 - **Documentation changes are previewed** - always review before confirming
 
@@ -752,6 +836,37 @@ ChatGPTEditor/
 │           ├── ChatGPTEditor.cpp            # Module implementation
 │           ├── SChatGPTWindow.h             # Slate window header
 │           ├── SChatGPTWindow.cpp           # Slate window implementation
+│           ├── AuditLogger.h                # Audit logging system header
+│           ├── AuditLogger.cpp              # Audit logging implementation
+│           ├── ExternalAPIHandler.h         # External API handler header
+│           └── ExternalAPIHandler.cpp       # External API handler implementation
+└── README.md                                 # This file
+```
+
+### Audit Logging
+
+All plugin activities are logged to `Saved/ChatGPTEditor/audit.log` in your project directory. The audit log includes:
+
+- Module startup/shutdown events
+- API connection attempts (approved and denied)
+- Code generation events
+- Endpoint URLs, HTTP methods, and timestamps
+- User approval/denial decisions
+
+**Example audit log entry:**
+```
+[2024-10-26 15:30:45] API_CONNECTION | Status: APPROVED | Method: GET | Endpoint: https://api.example.com/data
+[2024-10-26 15:30:47] CODE_CHANGE | Status: APPROVED | Description: Fetch data from REST endpoint
+Code Preview:
+// Unreal Engine 5 HTTP Request Code
+...
+---
+```
+
+**Accessing the audit log:**
+- Location: `YourProject/Saved/ChatGPTEditor/audit.log`
+- Format: Plain text, timestamped entries
+- Persistence: Log persists across editor sessions
 │           ├── AuditLog.h                   # Audit logging system
 │           ├── DocumentationHandler.h       # Documentation operations header
 │           └── DocumentationHandler.cpp     # Documentation operations implementation
@@ -805,6 +920,28 @@ The plugin includes a documentation generation and code review system:
 - You've exceeded your API rate limit or quota
 - Check your OpenAI account usage and billing settings
 
+### External API Request Failed
+
+- Check the endpoint URL is correct and accessible
+- Verify the target service is online and responding
+- Check your internet connection and firewall settings
+- Review the audit log for detailed error information
+- Ensure the HTTP method is appropriate for the endpoint
+
+### Audit Log Not Found
+
+- The audit log is created automatically when the plugin starts
+- Check `YourProject/Saved/ChatGPTEditor/` directory
+- If the directory doesn't exist, it will be created on first use
+- Ensure the editor has write permissions to the Saved directory
+
+## Known Limitations
+
+- **Asset Write/Console Command/File I/O permissions**: UI elements for future functionality. Core destructive operations not yet implemented.
+- **No local AI support**: Requires internet connection and OpenAI API access
+- **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
+- **No streaming responses**: Responses arrive all at once rather than streaming
+- **API parsing**: Natural language API request parsing uses simple pattern matching; complex requests may require explicit endpoint URLs
 ### Test Generation Issues
 
 If test generation isn't working or producing poor results:
@@ -1002,6 +1139,11 @@ Potential features for future versions:
 - Custom system prompts for documentation generation
 - Conversation save/load functionality
 - Integration with Unreal's Blueprint system
+- Asset creation and modification (when Asset Write permission is active)
+- Multi-model support (GPT-4, etc.)
+- Advanced API request builder with custom headers and authentication
+- Webhook support for real-time integrations
+- API response caching and retry logic
 - Enhanced code review with inline comments
 - Asset analysis and recommendations
 - Multi-model support (GPT-4, etc.)
@@ -1030,14 +1172,21 @@ This plugin is provided as-is for educational and development purposes. Please e
 
 ## Disclaimer
 
-⚠️ **Important**: This plugin sends data to external services (OpenAI). Be mindful of:
+⚠️ **Important**: This plugin sends data to external services (OpenAI and potentially other APIs). Be mindful of:
 - What information you share in conversations
 - Your organization's data privacy policies
 - OpenAI's data usage policies
 - Potential costs associated with API usage
+- **Data sent to external APIs when using the External API/Web Integration feature**
+- **Security implications of connecting to third-party services**
 
 The authors of this plugin are not responsible for:
 - API costs incurred
+- Data shared with OpenAI or external APIs
+- Any modifications made to your project while using this plugin
+- Any consequences of enabling security permissions
+- **Security breaches or data leaks from external API connections**
+- **Malicious responses from third-party APIs**
 - Data shared with OpenAI
 - Any modifications made to your project or documentation while using this plugin
 - Any consequences of enabling security permissions
@@ -1113,6 +1262,17 @@ For issues, questions, or suggestions:
 ### 1.0.0
 - Initial release
 - Basic ChatGPT integration
+- Security permission toggles (UI only for Asset Write, Console Commands, File I/O)
+- **External API & Web Integration feature**
+  - Natural language API request parsing
+  - Preview and approval system for all external connections
+  - Automatic UE5 C++ code generation
+  - Comprehensive audit logging (Saved/ChatGPTEditor/audit.log)
+  - Support for GET, POST, PUT, DELETE, PATCH methods
+  - Secure request validation
+- Conversation history
+- Environment-based API key storage
+- UE5.5 compatibility
 - Security permission toggles
 - Conversation history
 - Environment-based API key storage

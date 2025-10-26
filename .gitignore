@@ -14,6 +14,38 @@ Intermediate/
 Saved/
 *.sln
 *.suo
+*.xcodeproj
+*.xcworkspace
+
+# Plugin Build
+*.lib
+*.pdb
+*.exp
+*.obj
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.filters
+*.vcxproj.user
+
+# Rider
+.idea/
+*.sln.iml
+
+# Test files (not part of plugin)
+test.txt
 *.opensdf
 *.sdf
 *.VC.db

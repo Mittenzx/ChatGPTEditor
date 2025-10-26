@@ -10,6 +10,8 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class FExternalAPIHandler;
+struct FAPIRequestDetails;
 template <typename OptionType> class SComboBox;
 class SWindow;
 class FProjectFileManager;
@@ -23,6 +25,7 @@ struct FBlueprintExplanation;
  * Slate widget for ChatGPT window
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
+ * Supports external API and web integration with preview and approval
  * Supports documentation generation and code review features
  * Supports console command execution and Python script generation
  * Includes Blueprint Scripting Assistant for generating and explaining Blueprints
@@ -105,12 +108,22 @@ private:
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
 	void OnFileIOPermissionChanged(ECheckBoxState NewState);
+	void OnExternalAPIPermissionChanged(ECheckBoxState NewState);
 	void OnPythonScriptingPermissionChanged(ECheckBoxState NewState);
 	void OnSceneEditingPermissionChanged(ECheckBoxState NewState);
 	
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	ECheckBoxState GetExternalAPIPermission() const;
+	
+	// External API handlers
+	void ProcessPotentialAPIRequest(const FString& UserMessage);
+	void ShowAPIPreviewDialog(const FAPIRequestDetails& Details);
+	void OnAPIRequestApproved(const FAPIRequestDetails& Details);
+	void OnAPIRequestDenied(const FAPIRequestDetails& Details);
+	void OnAPIExecutionComplete(bool bSuccess, const FString& Response);
+	void ShowCodePreviewDialog(const FString& Code, const FString& Description);
 	
 	// Test type combo box helpers
 	TSharedRef<SWidget> MakeTestTypeComboWidget(TSharedPtr<FString> InItem);
@@ -155,6 +168,10 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	bool bAllowExternalAPI = false;
+	
+	// External API handler
+	TSharedPtr<FExternalAPIHandler> APIHandler;
 	
 	// Test automation state
 	TArray<TSharedPtr<FString>> TestTypes;

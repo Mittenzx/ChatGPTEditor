@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SChatGPTWindow.h"
+#include "ExternalAPIHandler.h"
+#include "AuditLogger.h"
 #include "TestAutomationHelper.h"
 #include "DocumentationHandler.h"
 #include "AuditLog.h"
@@ -44,6 +46,8 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 {
 	ConversationHistory = TEXT("");
 	
+	// Initialize API handler
+	APIHandler = MakeShareable(new FExternalAPIHandler());
 	// Initialize audit logging
 	FTestAutomationHelper::InitializeAuditLog();
 	
@@ -342,6 +346,21 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 					.ToolTipText(LOCTEXT("RunTestTooltip", "Run the currently selected test"))
 				]
 			]
+			
+			// External API Permission
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(10.0f, 2.0f)
+			[
+				SNew(SCheckBox)
+				.IsChecked(this, &SChatGPTWindow::GetExternalAPIPermission)
+				.OnCheckStateChanged(this, &SChatGPTWindow::OnExternalAPIPermissionChanged)
+				.Content()
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("ExternalAPIPermission", "Allow External API/Web Integration (REQUIRES APPROVAL)"))
+				]
+			]
 		]
 		
 		+ SVerticalBox::Slot()
@@ -564,6 +583,12 @@ FReply SChatGPTWindow::OnSendMessageClicked()
 	else
 	{
 		FAuditLog::Get().LogOperation(TEXT("ChatRequest"), UserMessage);
+	}
+	
+	// Check if this might be an API integration request
+	if (bAllowExternalAPI)
+	{
+		ProcessPotentialAPIRequest(UserMessage);
 	}
 	
 	// Append user message to conversation
@@ -980,6 +1005,24 @@ ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 	return bAllowFileIO ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
+ECheckBoxState SChatGPTWindow::GetExternalAPIPermission() const
+{
+	return bAllowExternalAPI ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void SChatGPTWindow::OnExternalAPIPermissionChanged(ECheckBoxState NewState)
+{
+	HandlePermissionChange(
+		bAllowExternalAPI,
+		NewState,
+		LOCTEXT("ExternalAPIWarning", 
+			"WARNING: Enabling External API/Web Integration allows the plugin to make HTTP requests to external services.\n\n"
+			"This can lead to:\n"
+			"- Data being sent to external servers\n"
+			"- Potential security risks\n"
+			"- Network activity\n\n"
+			"All requests will require preview and approval before execution.\n"
+			"All connections are logged in Saved/ChatGPTEditor/audit.log\n\n"
 // Test automation UI handlers
 
 TSharedRef<SWidget> SChatGPTWindow::MakeTestTypeComboWidget(TSharedPtr<FString> InItem)
@@ -1431,6 +1474,100 @@ void SChatGPTWindow::OnSceneEditingPermissionChanged(ECheckBoxState NewState)
 	);
 }
 
+void SChatGPTWindow::ProcessPotentialAPIRequest(const FString& UserMessage)
+{
+	if (!APIHandler.IsValid())
+	{
+		return;
+	}
+	
+	FAPIRequestDetails Details;
+	if (APIHandler->ParseAPIRequest(UserMessage, Details))
+	{
+		// This looks like an API request - show preview
+		ShowAPIPreviewDialog(Details);
+	}
+}
+
+void SChatGPTWindow::ShowAPIPreviewDialog(const FAPIRequestDetails& Details)
+{
+	FString PreviewText = APIHandler->GenerateAPIPreview(Details);
+	
+	// Show confirmation dialog
+	EAppReturnType::Type Result = FMessageDialog::Open(
+		EAppMsgType::YesNo,
+		FText::FromString(PreviewText)
+	);
+	
+	if (Result == EAppReturnType::Yes)
+	{
+		OnAPIRequestApproved(Details);
+	}
+	else
+	{
+		OnAPIRequestDenied(Details);
+	}
+}
+
+void SChatGPTWindow::OnAPIRequestApproved(const FAPIRequestDetails& Details)
+{
+	AppendMessage(TEXT("System"), FString::Printf(
+		TEXT("Executing API request to: %s"), *Details.Endpoint));
+	
+	// Execute the request
+	APIHandler->ExecuteAPIRequest(
+		Details,
+		FOnAPIExecutionComplete::CreateSP(this, &SChatGPTWindow::OnAPIExecutionComplete)
+	);
+	
+	// Generate and show integration code
+	FString IntegrationCode = APIHandler->GenerateIntegrationCode(Details);
+	ShowCodePreviewDialog(IntegrationCode, Details.Description);
+}
+
+void SChatGPTWindow::OnAPIRequestDenied(const FAPIRequestDetails& Details)
+{
+	FAuditLogger::Get().LogAPIConnection(Details.Endpoint, Details.Method, false);
+	AppendMessage(TEXT("System"), TEXT("API request denied by user."));
+}
+
+void SChatGPTWindow::OnAPIExecutionComplete(bool bSuccess, const FString& Response)
+{
+	if (bSuccess)
+	{
+		AppendMessage(TEXT("API Response"), Response);
+	}
+	else
+	{
+		AppendMessage(TEXT("API Error"), Response);
+	}
+}
+
+void SChatGPTWindow::ShowCodePreviewDialog(const FString& Code, const FString& Description)
+{
+	FString PreviewText = TEXT("=== Generated Integration Code ===\n\n");
+	PreviewText += FString::Printf(TEXT("Description: %s\n\n"), *Description);
+	PreviewText += Code;
+	PreviewText += TEXT("\n\n⚠️ Review this code before using it in your project.");
+	PreviewText += TEXT("\n\nWould you like to log this code to the audit log?");
+	
+	EAppReturnType::Type Result = FMessageDialog::Open(
+		EAppMsgType::YesNo,
+		FText::FromString(PreviewText)
+	);
+	
+	if (Result == EAppReturnType::Yes)
+	{
+		FAuditLogger::Get().LogCodeChange(Description, Code, true);
+		AppendMessage(TEXT("System"), TEXT("Integration code logged to audit log."));
+	}
+	else
+	{
+		FAuditLogger::Get().LogCodeChange(Description, Code, false);
+	}
+	
+	// Always show the code in the conversation history
+	AppendMessage(TEXT("Generated Code"), Code);
 ECheckBoxState SChatGPTWindow::GetSceneEditingPermission() const
 {
 	return bAllowSceneEditing ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;

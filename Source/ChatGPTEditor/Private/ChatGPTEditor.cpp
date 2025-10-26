@@ -2,6 +2,7 @@
 
 #include "ChatGPTEditor.h"
 #include "SChatGPTWindow.h"
+#include "AuditLogger.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "Framework/Application/SlateApplication.h"
 #include "LevelEditor.h"
@@ -16,6 +17,10 @@ static const FName ChatGPTEditorTabName("ChatGPTEditor");
 
 void FChatGPTEditorModule::StartupModule()
 {
+	// Initialize audit logger
+	FAuditLogger::Get().Initialize();
+	FAuditLogger::Get().LogEvent(TEXT("MODULE_STARTUP"), TEXT("ChatGPT Editor module started"));
+	
 	// Register tab spawner - Make it visible in the Window menu
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ChatGPTEditorTabName, FOnSpawnTab::CreateRaw(this, &FChatGPTEditorModule::OnSpawnPluginTab))
 		.SetDisplayName(LOCTEXT("FChatGPTEditorTabTitle", "ChatGPT"))
@@ -25,6 +30,10 @@ void FChatGPTEditorModule::StartupModule()
 
 void FChatGPTEditorModule::ShutdownModule()
 {
+	// Log shutdown
+	FAuditLogger::Get().LogEvent(TEXT("MODULE_SHUTDOWN"), TEXT("ChatGPT Editor module shutting down"));
+	FAuditLogger::Get().Shutdown();
+	
 	// Unregister tab spawner
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ChatGPTEditorTabName);
 }
