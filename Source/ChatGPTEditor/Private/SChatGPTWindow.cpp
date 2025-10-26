@@ -477,31 +477,36 @@ bool SChatGPTWindow::ExtractFileOperationCommand(const FString& Message, FString
 	// <content>
 	// CONTENT_END
 
-	if (Message.Contains(TEXT("READ_FILE:")))
+	const FString ReadFilePrefix = TEXT("READ_FILE:");
+	const FString WriteFilePrefix = TEXT("WRITE_FILE:");
+	const FString ContentStartMarker = TEXT("CONTENT_START");
+	const FString ContentEndMarker = TEXT("CONTENT_END");
+
+	if (Message.Contains(ReadFilePrefix))
 	{
 		OutCommand = TEXT("READ");
-		int32 StartIdx = Message.Find(TEXT("READ_FILE:")) + 10;
-		int32 EndIdx = Message.Find(TEXT("\n"), ESearchCase::IgnoreCase, ESearchDir::FromStart, StartIdx);
+		int32 StartIdx = Message.Find(ReadFilePrefix) + ReadFilePrefix.Len();
+		int32 EndIdx = Message.Find(TEXT("\n"), ESearchCase::CaseSensitive, ESearchDir::FromStart, StartIdx);
 		if (EndIdx == INDEX_NONE) EndIdx = Message.Len();
 		OutFilePath = Message.Mid(StartIdx, EndIdx - StartIdx).TrimStartAndEnd();
 		return true;
 	}
-	else if (Message.Contains(TEXT("WRITE_FILE:")))
+	else if (Message.Contains(WriteFilePrefix))
 	{
 		OutCommand = TEXT("WRITE");
-		int32 FilePathStart = Message.Find(TEXT("WRITE_FILE:")) + 11;
-		int32 FilePathEnd = Message.Find(TEXT("\n"), ESearchCase::IgnoreCase, ESearchDir::FromStart, FilePathStart);
+		int32 FilePathStart = Message.Find(WriteFilePrefix) + WriteFilePrefix.Len();
+		int32 FilePathEnd = Message.Find(TEXT("\n"), ESearchCase::CaseSensitive, ESearchDir::FromStart, FilePathStart);
 		if (FilePathEnd == INDEX_NONE) return false;
 		
 		OutFilePath = Message.Mid(FilePathStart, FilePathEnd - FilePathStart).TrimStartAndEnd();
 		
 		// Extract content between CONTENT_START and CONTENT_END
-		int32 ContentStart = Message.Find(TEXT("CONTENT_START"));
-		int32 ContentEnd = Message.Find(TEXT("CONTENT_END"));
+		int32 ContentStart = Message.Find(ContentStartMarker);
+		int32 ContentEnd = Message.Find(ContentEndMarker);
 		
 		if (ContentStart != INDEX_NONE && ContentEnd != INDEX_NONE && ContentEnd > ContentStart)
 		{
-			ContentStart += 13; // Length of "CONTENT_START"
+			ContentStart += ContentStartMarker.Len();
 			OutContent = Message.Mid(ContentStart, ContentEnd - ContentStart).TrimStartAndEnd();
 			return true;
 		}
