@@ -9,11 +9,14 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class FExternalAPIHandler;
+struct FAPIRequestDetails;
 
 /**
  * Slate widget for ChatGPT window
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
+ * Supports external API and web integration with preview and approval
  */
 class SChatGPTWindow : public SCompoundWidget
 {
@@ -44,10 +47,20 @@ private:
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
 	void OnFileIOPermissionChanged(ECheckBoxState NewState);
+	void OnExternalAPIPermissionChanged(ECheckBoxState NewState);
 	
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	ECheckBoxState GetExternalAPIPermission() const;
+	
+	// External API handlers
+	void ProcessPotentialAPIRequest(const FString& UserMessage);
+	void ShowAPIPreviewDialog(const FAPIRequestDetails& Details);
+	void OnAPIRequestApproved(const FAPIRequestDetails& Details);
+	void OnAPIRequestDenied(const FAPIRequestDetails& Details);
+	void OnAPIExecutionComplete(bool bSuccess, const FString& Response);
+	void ShowCodePreviewDialog(const FString& Code, const FString& Description);
 
 private:
 	// UI widgets
@@ -63,4 +76,8 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	bool bAllowExternalAPI = false;
+	
+	// External API handler
+	TSharedPtr<FExternalAPIHandler> APIHandler;
 };
