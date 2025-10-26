@@ -1,3 +1,11 @@
+# Unreal Engine build artifacts
+Binaries/
+Intermediate/
+Build/
+DerivedDataCache/
+
+# Saved directory (contains logs, configs, etc.)
+Saved/
 # Unreal Engine
 Binaries/
 Build/
@@ -17,6 +25,21 @@ Saved/
 # IDE files
 .vs/
 .vscode/
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.suo
+*.sln
+*.xcodeproj
+
+# Rider
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Compiled Object files
 .idea/
 # Unreal Engine build files
 Binaries/
@@ -73,6 +96,9 @@ Saved/
 *.gch
 *.pch
 
+# Compiled Static libraries
+*.lib
+*.a
 # Compiled Dynamic libraries
 *.so
 *.dylib

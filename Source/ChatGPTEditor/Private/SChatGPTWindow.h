@@ -10,6 +10,8 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+template <typename OptionType> class SComboBox;
+class SWindow;
 class FProjectFileManager;
 class FChatGPTConsoleHandler;
 class FChatGPTPythonHandler;
@@ -46,6 +48,10 @@ private:
 	// UI event handlers
 	FReply OnSendMessageClicked();
 	FReply OnClearHistoryClicked();
+	FReply OnGenerateTestClicked();
+	FReply OnRunTestClicked();
+	FReply OnConfirmTestCodeClicked();
+	FReply OnCancelTestCodeClicked();
 	FReply OnViewAuditLogClicked();
 	FReply OnGenerateBlueprintClicked();
 	FReply OnExplainBlueprintClicked();
@@ -86,6 +92,12 @@ private:
 	bool IsAPIKeyValid() const;
 	void HandlePermissionChange(bool& bPermissionFlag, ECheckBoxState NewState, const FText& WarningText);
 	
+	// Test automation helpers
+	void SendTestGenerationRequest(const FString& TestPrompt, const FString& TestType);
+	void OnTestGenerationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void ShowTestCodePreview(const FString& TestCode, const FString& TestName);
+	void ExecuteTest(const FString& TestName);
+	void DisplayTestResults(const FString& TestName, bool bSuccess, const FString& Results);
 	// Asset automation
 	void ProcessAssetAutomation(const FString& Response);
 	
@@ -99,6 +111,11 @@ private:
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	
+	// Test type combo box helpers
+	TSharedRef<SWidget> MakeTestTypeComboWidget(TSharedPtr<FString> InItem);
+	void OnTestTypeSelectionChanged(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo);
+	FText GetCurrentTestTypeText() const;
 	ECheckBoxState GetPythonScriptingPermission() const;
 	ECheckBoxState GetSceneEditingPermission() const;
 	
@@ -120,6 +137,10 @@ private:
 	TSharedPtr<SEditableTextBox> MessageInputBox;
 	TSharedPtr<SMultiLineEditableTextBox> ConversationHistoryBox;
 	TSharedPtr<SScrollBox> ConversationScrollBox;
+	TSharedPtr<SEditableTextBox> TestPromptInputBox;
+	TSharedPtr<SComboBox<TSharedPtr<FString>>> TestTypeComboBox;
+	TSharedPtr<SMultiLineEditableTextBox> TestCodePreviewBox;
+	TSharedPtr<SWindow> TestPreviewWindow;
 	TSharedPtr<SEditableTextBox> BlueprintPromptBox;
 	TSharedPtr<SEditableTextBox> BlueprintNameBox;
 	TSharedPtr<SButton> SendButton;
@@ -134,6 +155,13 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	
+	// Test automation state
+	TArray<TSharedPtr<FString>> TestTypes;
+	TSharedPtr<FString> CurrentTestType;
+	FString PendingTestCode;
+	FString PendingTestName;
+	bool bWaitingForTestGeneration = false;
 	bool bAllowPythonScripting = false;
 	
 	// Console and scripting handlers

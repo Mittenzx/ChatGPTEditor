@@ -6,6 +6,7 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 
 - **Slate-based UI**: Clean, integrated Editor tab that fits naturally into the Unreal Editor workflow
 - **OpenAI Integration**: Direct communication with OpenAI's Chat Completions API (GPT-3.5-turbo)
+- **Test Automation & QA**: Generate, preview, and manage automated tests with natural language prompts
 - **Project File Management**: Edit project configuration files (DefaultEngine.ini, .uproject, etc.) using natural language
 - **Security-First Design**: Permission toggles for potentially destructive operations
 - **Preview & Confirm**: All file changes must be previewed and explicitly confirmed before applying
@@ -16,6 +17,7 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 - **Preview & Confirmation**: All scene changes require explicit preview and confirmation
 - **Audit Logging**: Complete tracking of all scene editing operations
 - **Conversation History**: Maintains context throughout your ChatGPT conversation
+- **Audit Logging**: All test generation and execution requests are logged for security and compliance
 - **Environment-based API Keys**: Secure API key storage using environment variables
 - **📝 Documentation Generation**: Generate or update documentation files (README, guides) from natural language prompts
 - **🔍 Code Review & Explanation**: Request explanations for code, assets, or project structure
@@ -513,6 +515,50 @@ Click the **"View Audit Log"** button to see a complete history of:
 
 The audit log helps you track what operations have been performed and maintain accountability.
 
+### Test Automation & QA
+
+The plugin includes a powerful test automation feature that helps you generate, review, and manage automated tests:
+
+#### Generating Tests
+
+1. **Select Test Type**: Choose from Unit Test, Integration Test, or Functional Test in the dropdown
+2. **Enter Prompt**: Describe what you want to test (e.g., "Write tests for Asset Automation")
+3. **Click "Generate Test"**: The plugin will send your request to ChatGPT
+4. **Review Generated Code**: A preview window will appear with the generated test code
+
+#### Reviewing Test Code
+
+- All generated test code is displayed in a preview window before being accepted
+- The code goes through automatic security validation to check for dangerous operations
+- Security warnings are displayed if any potential issues are found
+- You must explicitly confirm or reject the generated code
+
+#### Using Generated Tests
+
+1. **Confirm the Code**: Click "Confirm" in the preview window if the code looks good
+2. **Copy the Code**: Copy the test code from the conversation history
+3. **Create Test File**: Create a new `.cpp` file in your project's `Tests` folder
+4. **Add to Project**: Include the test file in your project's build
+5. **Compile**: Rebuild your project to include the new test
+6. **Run Tests**: Use Unreal Engine's Test Automation window (Window → Test Automation)
+
+#### Audit Logging
+
+All test automation activities are logged to maintain a security audit trail:
+
+- **Location**: `Saved/ChatGPTEditor/audit.log` in your project directory
+- **What's Logged**:
+  - Test generation requests with prompts and test types
+  - Test code confirmations and rejections
+  - Security validation results
+  - Test execution requests (when implemented)
+  
+The audit log helps you:
+- Track what tests were generated and when
+- Review security decisions
+- Maintain compliance with testing policies
+- Debug issues with test generation
+
 ### Security Permissions
 
 The plugin includes four permission toggles that are **disabled by default** for your safety:
@@ -608,6 +654,24 @@ The plugin includes four permission toggles that are **disabled by default** for
 - Use asset automation on production assets without testing
 - Delete the audit log - it's your record of what changed
 - Ignore failed operations - check the audit log for details
+
+### Test Automation Best Practices
+
+✅ **DO:**
+- **Always review generated test code** before adding it to your project
+- **Validate test logic** to ensure it tests what you intended
+- **Check for edge cases** that the AI might have missed
+- **Run tests locally** before committing them to version control
+- **Keep audit logs** for compliance and debugging purposes
+- **Start with simple tests** and gradually increase complexity
+- **Use descriptive prompts** to get better test generation results
+
+❌ **DON'T:**
+- Blindly accept generated test code without review
+- Use generated tests in production without validation
+- Ignore security warnings from the validation system
+- Generate tests for code you don't understand
+- Skip testing the generated tests themselves
 
 ### General Security
 
@@ -741,6 +805,71 @@ The plugin includes a documentation generation and code review system:
 - You've exceeded your API rate limit or quota
 - Check your OpenAI account usage and billing settings
 
+### Test Generation Issues
+
+If test generation isn't working or producing poor results:
+
+- **Use specific prompts**: Instead of "test my code", try "Write a unit test for a function that validates asset names"
+- **Specify the test type**: Make sure you've selected the appropriate test type (Unit/Integration/Functional)
+- **Check security warnings**: If code is rejected, review the warnings and adjust your request
+- **Review audit log**: Check `Saved/ChatGPTEditor/audit.log` for detailed error messages
+
+## Test Automation Examples
+
+### Example 1: Basic Unit Test
+
+**Prompt**: "Write a unit test that validates FString concatenation"
+
+**Test Type**: Unit Test
+
+**Result**: Generates a simple automation test that verifies string operations work correctly.
+
+### Example 2: Asset Validation Test
+
+**Prompt**: "Create a test that checks if asset names follow naming conventions (prefix with T_ for textures)"
+
+**Test Type**: Functional Test
+
+**Result**: Generates a test that iterates through assets and validates their naming.
+
+### Example 3: Blueprint Integration Test
+
+**Prompt**: "Write an integration test that verifies a Blueprint can be loaded and its default values are correct"
+
+**Test Type**: Integration Test
+
+**Result**: Generates a test that loads a Blueprint asset and validates its properties.
+
+### Writing Effective Test Prompts
+
+For best results, include:
+- **What to test**: The specific functionality or component
+- **Expected behavior**: What should happen in the test
+- **Test scope**: Unit, integration, or functional level
+- **Any constraints**: Platform-specific, performance requirements, etc.
+
+**Good prompt example**:
+```
+Write a unit test for a custom Actor component that manages health.
+The test should verify:
+- Initial health is set correctly
+- TakeDamage reduces health
+- Health never goes below zero
+- OnHealthChanged delegate fires when health changes
+```
+
+**Poor prompt example**:
+```
+test health
+```
+
+## Known Limitations
+
+- **Test execution integration**: Currently, tests must be manually copied to your project and run via Unreal's Test Automation window. Direct execution from the ChatGPT window is not yet implemented.
+- **No local AI support**: Requires internet connection and OpenAI API access
+- **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
+- **No streaming responses**: Responses arrive all at once rather than streaming
+- **Code review required**: All generated test code must be manually reviewed for correctness and security
 ### Console Command Not Executing
 
 - Ensure "Allow Console Commands" permission is enabled
@@ -854,6 +983,15 @@ The ChatGPTEditor plugin is designed with accessibility in mind:
 ## Future Enhancements
 
 Potential features for future versions:
+
+**Test Automation:**
+- Direct test execution from the ChatGPT window
+- Automated test result parsing and display
+- Test suite management and organization
+- Performance benchmarking integration
+- Code coverage analysis
+
+**General Features:**
 - Improved documentation request parsing and extraction
 - Advanced natural language parsing for more complex scene editing commands
 - Integration with OpenAI GPT models for smarter command interpretation
@@ -918,6 +1056,16 @@ For issues, questions, or suggestions:
 
 ## Version History
 
+### 1.1.0 (Current - Test Automation Release)
+- **NEW**: Test Automation & QA feature
+  - Generate unit, integration, and functional tests from natural language prompts
+  - Test code preview and confirmation workflow
+  - Security validation for generated code
+  - Audit logging for all test operations
+- **NEW**: Audit log system (`Saved/ChatGPTEditor/audit.log`)
+- Enhanced security with test code validation
+- Comprehensive documentation and examples
+- UE5.5 compatibility maintained
 ### 1.1.0 (Current)
 - Added project file and config management
 - Implemented file read/write operations with natural language
