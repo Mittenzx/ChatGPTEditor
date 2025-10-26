@@ -183,7 +183,8 @@ Standard Unreal Engine plugin .gitignore excluding:
 - [ ] Test keyboard shortcuts:
   - [ ] Ctrl+Enter sends message
   - [ ] Ctrl+L clears history
-  - [ ] Ctrl+/- adjusts font size
+  - [ ] Ctrl++ adjusts font size up
+  - [ ] Ctrl+- adjusts font size down
   - [ ] Ctrl+0 resets font size
 - [ ] Verify tooltips appear on hover
 - [ ] Test font size buttons (A-, A+)
@@ -264,5 +265,5 @@ All changes are non-destructive, reversible, and enhance the plugin without intr
 ---
 
 **Version**: 1.1.0
-**Date**: October 26, 2025
+**Date**: October 26, 2024
 **Status**: Ready for Review
