@@ -9,6 +9,7 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class SComboBox;
 
 /**
  * Slate widget for ChatGPT window
@@ -29,6 +30,10 @@ private:
 	// UI event handlers
 	FReply OnSendMessageClicked();
 	FReply OnClearHistoryClicked();
+	FReply OnGenerateTestClicked();
+	FReply OnRunTestClicked();
+	FReply OnConfirmTestCodeClicked();
+	FReply OnCancelTestCodeClicked();
 	
 	// HTTP request handling
 	void SendRequestToOpenAI(const FString& UserMessage);
@@ -40,6 +45,13 @@ private:
 	bool IsAPIKeyValid() const;
 	void HandlePermissionChange(bool& bPermissionFlag, ECheckBoxState NewState, const FText& WarningText);
 	
+	// Test automation helpers
+	void SendTestGenerationRequest(const FString& TestPrompt, const FString& TestType);
+	void OnTestGenerationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void ShowTestCodePreview(const FString& TestCode, const FString& TestName);
+	void ExecuteTest(const FString& TestName);
+	void DisplayTestResults(const FString& TestName, bool bSuccess, const FString& Results);
+	
 	// Permission toggle handlers
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
@@ -48,12 +60,21 @@ private:
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	
+	// Test type combo box helpers
+	TSharedRef<SWidget> MakeTestTypeComboWidget(TSharedPtr<FString> InItem);
+	void OnTestTypeSelectionChanged(TSharedPtr<FString> NewSelection, ESelectInfo::Type SelectInfo);
+	FText GetCurrentTestTypeText() const;
 
 private:
 	// UI widgets
 	TSharedPtr<SEditableTextBox> MessageInputBox;
 	TSharedPtr<SMultiLineEditableTextBox> ConversationHistoryBox;
 	TSharedPtr<SScrollBox> ConversationScrollBox;
+	TSharedPtr<SEditableTextBox> TestPromptInputBox;
+	TSharedPtr<SComboBox<TSharedPtr<FString>>> TestTypeComboBox;
+	TSharedPtr<SMultiLineEditableTextBox> TestCodePreviewBox;
+	TSharedPtr<SWindow> TestPreviewWindow;
 	
 	// Conversation state
 	FString ConversationHistory;
@@ -63,4 +84,11 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	
+	// Test automation state
+	TArray<TSharedPtr<FString>> TestTypes;
+	TSharedPtr<FString> CurrentTestType;
+	FString PendingTestCode;
+	FString PendingTestName;
+	bool bWaitingForTestGeneration = false;
 };
