@@ -222,6 +222,24 @@ bool FAssetAutomation::ExecuteOperation(const FAssetOperation& Operation, bool b
 	return bSuccess;
 }
 
+void FAssetAutomation::ExecuteCommands(const TArray<FAssetOperation>& Operations, bool bAllowAssetWrite)
+{
+	for (const FAssetOperation& Operation : Operations)
+	{
+		bool bSuccess = ExecuteOperation(Operation, bAllowAssetWrite);
+		
+		// Log result message (the detailed logging is done in ExecuteOperation)
+		if (bSuccess)
+		{
+			UE_LOG(LogTemp, Log, TEXT("✓ Successfully executed: %s"), *Operation.GetTypeAsString());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("✗ Failed to execute: %s"), *Operation.GetTypeAsString());
+		}
+	}
+}
+
 bool FAssetAutomation::ShowConfirmationDialog(const FAssetOperation& Operation)
 {
 	FText Title = FText::Format(

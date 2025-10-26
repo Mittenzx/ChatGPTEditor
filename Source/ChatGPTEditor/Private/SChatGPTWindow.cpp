@@ -1090,7 +1090,7 @@ void SChatGPTWindow::ProcessAssetAutomation(const FString& Response)
 	if (Operations.Num() > 0)
 	{
 		AppendMessage(TEXT("System"), FString::Printf(TEXT("Detected %d asset operation(s) in response."), Operations.Num()));
-		Automation.ExecuteCommands(Operations);
+		Automation.ExecuteCommands(Operations, bAllowAssetWrite);
 	}
 }
 
