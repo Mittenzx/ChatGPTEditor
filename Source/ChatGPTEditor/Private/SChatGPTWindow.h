@@ -40,6 +40,9 @@ private:
 	bool IsAPIKeyValid() const;
 	void HandlePermissionChange(bool& bPermissionFlag, ECheckBoxState NewState, const FText& WarningText);
 	
+	// Asset automation
+	void ProcessAssetAutomation(const FString& Response);
+	
 	// Permission toggle handlers
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);

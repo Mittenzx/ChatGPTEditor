@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SChatGPTWindow.h"
+#include "AssetAutomation.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SButton.h"
@@ -317,10 +318,44 @@ void SChatGPTWindow::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
 		Messages.Add(AssistantMessageObject);
 		
 		AppendMessage(TEXT("Assistant"), AssistantMessage);
+		
+		// Process asset automation if enabled
+		ProcessAssetAutomation(AssistantMessage);
 	}
 	else
 	{
 		AppendMessage(TEXT("Error"), TEXT("Unexpected API response format."));
+	}
+}
+
+void SChatGPTWindow::ProcessAssetAutomation(const FString& Response)
+{
+	// Parse the response for asset operations
+	TArray<FAssetOperation> Operations = FAssetAutomation::ParseResponse(Response);
+	
+	if (Operations.Num() == 0)
+	{
+		return;
+	}
+	
+	// Notify user about detected operations
+	AppendMessage(TEXT("System"), FString::Printf(TEXT("Detected %d asset operation(s) in response."), Operations.Num()));
+	
+	// Execute each operation
+	for (const FAssetOperation& Op : Operations)
+	{
+		AppendMessage(TEXT("System"), FString::Printf(TEXT("Processing: %s - %s"), *Op.GetTypeAsString(), *Op.AssetName));
+		
+		bool bSuccess = FAssetAutomation::ExecuteOperation(Op, bAllowAssetWrite);
+		
+		if (bSuccess)
+		{
+			AppendMessage(TEXT("System"), FString::Printf(TEXT("✓ Successfully executed: %s"), *Op.GetTypeAsString()));
+		}
+		else
+		{
+			AppendMessage(TEXT("System"), FString::Printf(TEXT("✗ Failed to execute: %s"), *Op.GetTypeAsString()));
+		}
 	}
 }
 
