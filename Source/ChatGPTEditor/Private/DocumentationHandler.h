@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AuditLog.h"
 
 /**
  * Structure to represent a documentation change request

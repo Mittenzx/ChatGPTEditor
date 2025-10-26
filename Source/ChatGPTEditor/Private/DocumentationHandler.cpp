@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "DocumentationHandler.h"
+#include "AuditLogger.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "HAL/PlatformFileManager.h"
@@ -42,6 +43,9 @@ bool FDocumentationHandler::ParseDocumentationRequest(const FString& UserMessage
 
 FString FDocumentationHandler::PreviewChange(const FDocumentationChange& Change)
 {
+	// Maximum characters to show in preview to keep dialog manageable
+	static const int32 MaxPreviewLength = 500;
+	
 	FString Preview;
 	Preview += TEXT("==================== DOCUMENTATION CHANGE PREVIEW ====================\n\n");
 	Preview += FString::Printf(TEXT("Description: %s\n"), *Change.Description);
@@ -50,18 +54,18 @@ FString FDocumentationHandler::PreviewChange(const FDocumentationChange& Change)
 	
 	if (!Change.bIsNewFile && !Change.OriginalContent.IsEmpty())
 	{
-		Preview += TEXT("--- ORIGINAL CONTENT (First 500 chars) ---\n");
-		Preview += Change.OriginalContent.Left(500);
-		if (Change.OriginalContent.Len() > 500)
+		Preview += FString::Printf(TEXT("--- ORIGINAL CONTENT (First %d chars) ---\n"), MaxPreviewLength);
+		Preview += Change.OriginalContent.Left(MaxPreviewLength);
+		if (Change.OriginalContent.Len() > MaxPreviewLength)
 		{
 			Preview += TEXT("\n... (truncated)");
 		}
 		Preview += TEXT("\n\n");
 	}
 	
-	Preview += TEXT("--- PROPOSED CONTENT (First 500 chars) ---\n");
-	Preview += Change.ProposedContent.Left(500);
-	if (Change.ProposedContent.Len() > 500)
+	Preview += FString::Printf(TEXT("--- PROPOSED CONTENT (First %d chars) ---\n"), MaxPreviewLength);
+	Preview += Change.ProposedContent.Left(MaxPreviewLength);
+	if (Change.ProposedContent.Len() > MaxPreviewLength)
 	{
 		Preview += TEXT("\n... (truncated)");
 	}
@@ -78,18 +82,18 @@ bool FDocumentationHandler::ApplyChange(const FDocumentationChange& Change, FStr
 	if (!IsSafeFilePath(Change.FilePath))
 	{
 		OutError = TEXT("File path is outside the plugin directory. Operation rejected for security reasons.");
-		FAuditLog::Get().LogOperation(TEXT("ApplyDocChange"), OutError, Change.FilePath, false);
+		FAuditLogger::Get().LogError(TEXT("ApplyDocChange"), FString::Printf(TEXT("%s - %s"), *OutError, *Change.FilePath));
 		return false;
 	}
 
 	// Write the file
 	if (!WriteFile(Change.FilePath, Change.ProposedContent, OutError))
 	{
-		FAuditLog::Get().LogOperation(TEXT("ApplyDocChange"), FString::Printf(TEXT("Failed to write file: %s"), *OutError), Change.FilePath, false);
+		FAuditLogger::Get().LogError(TEXT("ApplyDocChange"), FString::Printf(TEXT("Failed to write file: %s - %s"), *OutError, *Change.FilePath));
 		return false;
 	}
 
-	FAuditLog::Get().LogOperation(TEXT("ApplyDocChange"), Change.Description, Change.FilePath, true);
+	FAuditLogger::Get().LogFileWrite(Change.FilePath, Change.Description);
 	return true;
 }
 

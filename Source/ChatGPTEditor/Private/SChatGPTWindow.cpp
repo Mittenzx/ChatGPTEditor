@@ -1,44 +1,40 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SChatGPTWindow.h"
-#include "ExternalAPIHandler.h"
+#include "AssetAutomation.h"
 #include "AuditLogger.h"
-#include "TestAutomationHelper.h"
-#include "DocumentationHandler.h"
-#include "AuditLog.h"
-#include "AuditLogger.h"
-#include "ProjectFileManager.h"
+#include "BlueprintAuditLog.h"
 #include "ChatGPTConsoleHandler.h"
 #include "ChatGPTPythonHandler.h"
-#include "SSceneEditPreviewDialog.h"
-#include "SceneEditingManager.h"
-#include "AuditLogger.h"
+#include "DocumentationHandler.h"
+#include "ExternalAPIHandler.h"
+#include "ProjectFileManager.h"
 #include "SBlueprintAssistantPanel.h"
-#include "BlueprintAuditLog.h"
-#include "AssetAutomation.h"
-#include "Widgets/Input/SEditableTextBox.h"
-#include "Widgets/Input/SMultiLineEditableTextBox.h"
-#include "Widgets/Input/SButton.h"
-#include "Widgets/Input/SCheckBox.h"
-#include "Widgets/Input/SComboBox.h"
-#include "Widgets/Layout/SScrollBox.h"
-#include "Widgets/Layout/SBox.h"
-#include "Widgets/Text/STextBlock.h"
-#include "Widgets/Layout/SSeparator.h"
-#include "Widgets/SWindow.h"
-#include "Styling/AppStyle.h"
+#include "SceneEditingManager.h"
+#include "SSceneEditPreviewDialog.h"
+#include "TestAutomationHelper.h"
+#include "DesktopPlatformModule.h"
+#include "Editor.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Framework/Commands/InputChord.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Json.h"
 #include "JsonUtilities.h"
-#include "Misc/MessageDialog.h"
-#include "Framework/Application/SlateApplication.h"
-#include "Widgets/SWindow.h"
-#include "Editor.h"
 #include "Misc/FileHelper.h"
-#include "DesktopPlatformModule.h"
-#include "Framework/Commands/InputChord.h"
+#include "Misc/MessageDialog.h"
+#include "Styling/AppStyle.h"
+#include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SCheckBox.h"
+#include "Widgets/Input/SComboBox.h"
+#include "Widgets/Input/SEditableTextBox.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SSeparator.h"
+#include "Widgets/SWindow.h"
+#include "Widgets/Text/STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "SChatGPTWindow"
 
@@ -574,15 +570,15 @@ FReply SChatGPTWindow::OnSendMessageClicked()
 	// Log the request
 	if (FDocumentationHandler::IsDocumentationRequest(UserMessage))
 	{
-		FAuditLog::Get().LogOperation(TEXT("DocumentationRequest"), UserMessage);
+		FAuditLogger::Get().LogOperation(TEXT("DocumentationRequest"), UserMessage);
 	}
 	else if (FDocumentationHandler::IsCodeExplanationRequest(UserMessage))
 	{
-		FAuditLog::Get().LogOperation(TEXT("CodeExplanationRequest"), UserMessage);
+		FAuditLogger::Get().LogOperation(TEXT("CodeExplanationRequest"), UserMessage);
 	}
 	else
 	{
-		FAuditLog::Get().LogOperation(TEXT("ChatRequest"), UserMessage);
+		FAuditLogger::Get().LogOperation(TEXT("ChatRequest"), UserMessage);
 	}
 	
 	// Check if this might be an API integration request
@@ -1634,14 +1630,14 @@ void SChatGPTWindow::ProcessSceneEditingCommand(const FString& Command)
 	else
 	{
 		AppendMessage(TEXT("System"), TEXT("Documentation change cancelled by user."));
-		FAuditLog::Get().LogOperation(TEXT("DocChangeCancelled"), TEXT("User declined to apply changes"), Change.FilePath, true);
+		FAuditLogger::Get().LogOperation(TEXT("DocChangeCancelled"), TEXT("User declined to apply changes"));
 		AppendMessage(TEXT("System"), TEXT("Scene editing actions cancelled by user."));
 	}
 }
 
 FReply SChatGPTWindow::OnViewAuditLogClicked()
 {
-	TArray<FAuditLogEntry> Entries = FAuditLog::Get().GetEntries();
+	TArray<FAuditLogEntry> Entries = FAuditLogger::Get().GetLogEntries();
 	
 	FString AuditLogText = TEXT("=== AUDIT LOG ===\n\n");
 	

@@ -57,7 +57,7 @@ struct FAssetOperation
 /**
  * Audit log entry for tracking asset operations
  */
-struct FAuditLogEntry
+struct FAssetAuditLogEntry
 {
 	FDateTime Timestamp;
 	FString Operation;
@@ -66,7 +66,7 @@ struct FAuditLogEntry
 	bool bSucceeded;
 	FString Details;
 
-	FAuditLogEntry()
+	FAssetAuditLogEntry()
 		: Timestamp(FDateTime::Now())
 		, bSucceeded(false)
 	{}
@@ -112,7 +112,7 @@ public:
 	 * Write an entry to the audit log
 	 * @param Entry The audit log entry to write
 	 */
-	static void WriteAuditLog(const FAuditLogEntry& Entry);
+	static void WriteAuditLog(const FAssetAuditLogEntry& Entry);
 
 	/**
 	 * Get the audit log file path

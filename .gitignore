@@ -3,88 +3,18 @@ Binaries/
 Intermediate/
 Build/
 DerivedDataCache/
-
-# Saved directory (contains logs, configs, etc.)
 Saved/
-# Unreal Engine
-Binaries/
-Build/
-DerivedDataCache/
-Intermediate/
-Saved/
-*.sln
-*.suo
-*.xcodeproj
-*.xcworkspace
-
-# Plugin Build
-*.lib
-*.pdb
-*.exp
-*.obj
-
-# OS Files
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-*~
 
 # Visual Studio
 .vs/
+*.sln
+*.suo
 *.user
 *.userosscache
 *.sln.docstates
+*.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
-
-# Rider
-.idea/
-*.sln.iml
-
-# Test files (not part of plugin)
-test.txt
-*.opensdf
-*.sdf
-*.VC.db
-*.VC.opendb
-
-# Plugin build artifacts
-*.uplugin.manifest
-
-# IDE files
-.vs/
-.vscode/
-*.suo
-*.user
-*.sdf
-*.opensdf
-*.suo
-*.sln
-*.xcodeproj
-
-# Rider
-.idea/
-
-# Visual Studio Code
-.vscode/
-
-# Compiled Object files
-.idea/
-# Unreal Engine build files
-Binaries/
-Build/
-Intermediate/
-Saved/
-DerivedDataCache/
-
-# Visual Studio files
-.vs/
-*.sln
-*.suo
-*.user
 *.aps
 *.pch
 *.vspscc
@@ -92,31 +22,15 @@ DerivedDataCache/
 *.ncb
 *.sdf
 *.opensdf
-*.vcxproj
-*.vcxproj.filters
-*.vcxproj.user
-
-# Rider files
-.idea/
-*.sln.iml
-# Unreal Engine Build Files
-Binaries/
-Build/
-Intermediate/
-DerivedDataCache/
-Saved/
-
-# Visual Studio / Rider
-.vs/
-.vscode/
-.idea/
-*.sln
-*.suo
-*.user
-*.sdf
-*.opensdf
 *.VC.db
 *.VC.opendb
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
 
 # Compiled Object files
 *.slo
@@ -129,18 +43,21 @@ Saved/
 *.pch
 
 # Compiled Static libraries
-*.lib
+*.lai
+*.la
 *.a
+*.lib
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+# Plugin build artifacts
+*.uplugin.manifest
 *.lib
+*.pdb
+*.exp
 
 # Executables
 *.exe
@@ -152,7 +69,6 @@ Saved/
 
 # macOS
 .DS_Store
-*.DS_Store
 *.ipa
 
 # Unreal Engine Specific
@@ -160,7 +76,6 @@ Saved/
 *.umap
 
 # OS Files
-.DS_Store
 Thumbs.db
 ehthumbs.db
 Desktop.ini
@@ -170,10 +85,10 @@ Desktop.ini
 *.swo
 *~
 *.tmp
+*.temp
 *.log
 
 # User Specific
-*.user
 *.userprefs
 *.pidb
 
@@ -182,24 +97,11 @@ Desktop.ini
 Temp/
 Logs/
 
-# Backup files
+# Backup and temporary files
 *.bak
-*~
+*.our_version
+test.txt
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.log
-*.swp
-*~
-
-# User settings
-*.ini
-*.swo
-
-# Build artifacts
+# Generated files
 *.generated.h
 *.generated.cpp
