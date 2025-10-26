@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SChatGPTWindow.h"
+#include "AuditLogger.h"
+#include "ProjectFileManager.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Input/SMultiLineEditableTextBox.h"
 #include "Widgets/Input/SButton.h"
@@ -220,6 +222,32 @@ FReply SChatGPTWindow::OnClearHistoryClicked()
 
 void SChatGPTWindow::SendRequestToOpenAI(const FString& UserMessage)
 {
+	// Add system message if this is the first user message
+	if (Messages.Num() == 0)
+	{
+		TSharedPtr<FJsonObject> SystemMessage = MakeShareable(new FJsonObject);
+		SystemMessage->SetStringField(TEXT("role"), TEXT("system"));
+		
+		FString SystemPrompt = TEXT("You are an AI assistant integrated into Unreal Engine 5.5 editor. ");
+		
+		if (bAllowFileIO)
+		{
+			SystemPrompt += TEXT("File I/O is ENABLED. You can read and write project files using these commands:\n\n");
+			SystemPrompt += TEXT("To read a file:\nREAD_FILE: <filepath>\n\n");
+			SystemPrompt += TEXT("To write a file:\nWRITE_FILE: <filepath>\nCONTENT_START\n<file content here>\nCONTENT_END\n\n");
+			SystemPrompt += TEXT("Supported files: .ini config files (DefaultEngine.ini, DefaultGame.ini, etc.), .uproject files, and other project configuration files. ");
+			SystemPrompt += TEXT("All file operations will be logged and require user confirmation before writing. ");
+			SystemPrompt += TEXT("Use relative paths from project root (e.g., 'Config/DefaultEngine.ini').");
+		}
+		else
+		{
+			SystemPrompt += TEXT("File I/O is DISABLED. You cannot read or write project files. Inform the user if they need to enable File I/O permission.");
+		}
+		
+		SystemMessage->SetStringField(TEXT("content"), SystemPrompt);
+		Messages.Add(SystemMessage);
+	}
+	
 	// Create message object
 	TSharedPtr<FJsonObject> MessageObject = MakeShareable(new FJsonObject);
 	MessageObject->SetStringField(TEXT("role"), TEXT("user"));
@@ -317,6 +345,9 @@ void SChatGPTWindow::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
 		Messages.Add(AssistantMessageObject);
 		
 		AppendMessage(TEXT("Assistant"), AssistantMessage);
+		
+		// Process any file operations in the response
+		ProcessFileOperation(AssistantMessage);
 	}
 	else
 	{
@@ -378,6 +409,9 @@ void SChatGPTWindow::OnAssetWritePermissionChanged(ECheckBoxState NewState)
 			"Only enable this if you understand the risks and have backups.\n\n"
 			"Do you want to continue?")
 	);
+	
+	// Log permission change
+	FAuditLogger::Get().LogPermissionChange(TEXT("AssetWrite"), bAllowAssetWrite);
 }
 
 void SChatGPTWindow::OnConsoleCommandPermissionChanged(ECheckBoxState NewState)
@@ -394,6 +428,9 @@ void SChatGPTWindow::OnConsoleCommandPermissionChanged(ECheckBoxState NewState)
 			"Only enable this if you understand the risks.\n\n"
 			"Do you want to continue?")
 	);
+	
+	// Log permission change
+	FAuditLogger::Get().LogPermissionChange(TEXT("ConsoleCommands"), bAllowConsoleCommands);
 }
 
 void SChatGPTWindow::OnFileIOPermissionChanged(ECheckBoxState NewState)
@@ -410,6 +447,9 @@ void SChatGPTWindow::OnFileIOPermissionChanged(ECheckBoxState NewState)
 			"Only enable this if you understand the risks and have backups.\n\n"
 			"Do you want to continue?")
 	);
+	
+	// Log permission change
+	FAuditLogger::Get().LogPermissionChange(TEXT("FileIO"), bAllowFileIO);
 }
 
 ECheckBoxState SChatGPTWindow::GetAssetWritePermission() const
@@ -425,6 +465,124 @@ ECheckBoxState SChatGPTWindow::GetConsoleCommandPermission() const
 ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 {
 	return bAllowFileIO ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+bool SChatGPTWindow::ExtractFileOperationCommand(const FString& Message, FString& OutCommand, FString& OutFilePath, FString& OutContent)
+{
+	// Look for file operation commands in the message
+	// Expected format: 
+	// READ_FILE: <filepath>
+	// WRITE_FILE: <filepath>
+	// CONTENT_START
+	// <content>
+	// CONTENT_END
+
+	if (Message.Contains(TEXT("READ_FILE:")))
+	{
+		OutCommand = TEXT("READ");
+		int32 StartIdx = Message.Find(TEXT("READ_FILE:")) + 10;
+		int32 EndIdx = Message.Find(TEXT("\n"), ESearchCase::IgnoreCase, ESearchDir::FromStart, StartIdx);
+		if (EndIdx == INDEX_NONE) EndIdx = Message.Len();
+		OutFilePath = Message.Mid(StartIdx, EndIdx - StartIdx).TrimStartAndEnd();
+		return true;
+	}
+	else if (Message.Contains(TEXT("WRITE_FILE:")))
+	{
+		OutCommand = TEXT("WRITE");
+		int32 FilePathStart = Message.Find(TEXT("WRITE_FILE:")) + 11;
+		int32 FilePathEnd = Message.Find(TEXT("\n"), ESearchCase::IgnoreCase, ESearchDir::FromStart, FilePathStart);
+		if (FilePathEnd == INDEX_NONE) return false;
+		
+		OutFilePath = Message.Mid(FilePathStart, FilePathEnd - FilePathStart).TrimStartAndEnd();
+		
+		// Extract content between CONTENT_START and CONTENT_END
+		int32 ContentStart = Message.Find(TEXT("CONTENT_START"));
+		int32 ContentEnd = Message.Find(TEXT("CONTENT_END"));
+		
+		if (ContentStart != INDEX_NONE && ContentEnd != INDEX_NONE && ContentEnd > ContentStart)
+		{
+			ContentStart += 13; // Length of "CONTENT_START"
+			OutContent = Message.Mid(ContentStart, ContentEnd - ContentStart).TrimStartAndEnd();
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+void SChatGPTWindow::ProcessFileOperation(const FString& AssistantMessage)
+{
+	// Check if file I/O permission is enabled
+	if (!bAllowFileIO)
+	{
+		return; // Silently ignore if permission not enabled
+	}
+
+	FString Command, FilePath, Content;
+	if (!ExtractFileOperationCommand(AssistantMessage, Command, FilePath, Content))
+	{
+		return; // No file operation command found
+	}
+
+	if (Command == TEXT("READ"))
+	{
+		FString FileContent;
+		if (FProjectFileManager::Get().ReadProjectFile(FilePath, FileContent))
+		{
+			AppendMessage(TEXT("System"), FString::Printf(TEXT("Successfully read file: %s\n\nContent:\n%s"), *FilePath, *FileContent));
+		}
+		else
+		{
+			AppendMessage(TEXT("System"), FString::Printf(TEXT("Failed to read file: %s"), *FilePath));
+		}
+	}
+	else if (Command == TEXT("WRITE"))
+	{
+		// Show preview and require confirmation
+		ShowFileChangePreview(FilePath, Content);
+	}
+}
+
+void SChatGPTWindow::ShowFileChangePreview(const FString& FilePath, const FString& NewContent)
+{
+	// Generate preview
+	FProjectFileManager::FFileChangePreview Preview = FProjectFileManager::Get().PreviewFileChanges(FilePath, NewContent);
+
+	if (!Preview.bIsValid)
+	{
+		AppendMessage(TEXT("System"), FString::Printf(TEXT("Failed to generate preview for: %s"), *FilePath));
+		return;
+	}
+
+	// Display preview to user
+	FString PreviewMessage = FString::Printf(
+		TEXT("FILE CHANGE PREVIEW for: %s\n\n%s\n\nDo you want to apply these changes?"),
+		*Preview.FilePath,
+		*Preview.DiffPreview
+	);
+
+	EAppReturnType::Type Result = FMessageDialog::Open(
+		EAppMsgType::YesNo,
+		FText::FromString(PreviewMessage)
+	);
+
+	if (Result == EAppReturnType::Yes)
+	{
+		// Apply the changes
+		if (FProjectFileManager::Get().WriteProjectFile(Preview))
+		{
+			AppendMessage(TEXT("System"), FString::Printf(TEXT("Successfully wrote file: %s"), *Preview.FilePath));
+		}
+		else
+		{
+			AppendMessage(TEXT("System"), FString::Printf(TEXT("Failed to write file: %s"), *Preview.FilePath));
+		}
+	}
+	else
+	{
+		AppendMessage(TEXT("System"), TEXT("File changes cancelled by user"));
+		FAuditLogger::Get().LogOperation("FileOperation", FString::Printf(TEXT("User cancelled changes to: %s"), *Preview.FilePath));
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

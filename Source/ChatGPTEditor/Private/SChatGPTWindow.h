@@ -9,6 +9,7 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class FProjectFileManager;
 
 /**
  * Slate widget for ChatGPT window
@@ -48,6 +49,11 @@ private:
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+
+	// File operation handlers
+	void ProcessFileOperation(const FString& AssistantMessage);
+	bool ExtractFileOperationCommand(const FString& Message, FString& OutCommand, FString& OutFilePath, FString& OutContent);
+	void ShowFileChangePreview(const FString& FilePath, const FString& NewContent);
 
 private:
 	// UI widgets
