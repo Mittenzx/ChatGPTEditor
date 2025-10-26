@@ -11,6 +11,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SSeparator.h"
+#include "Widgets/SWindow.h"
 #include "Styling/AppStyle.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpRequest.h"

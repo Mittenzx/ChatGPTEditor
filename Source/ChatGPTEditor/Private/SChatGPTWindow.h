@@ -9,7 +9,8 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
-class SComboBox;
+template <typename OptionType> class SComboBox;
+class SWindow;
 
 /**
  * Slate widget for ChatGPT window
