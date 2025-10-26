@@ -24,6 +24,34 @@ DerivedDataCache/
 # Rider files
 .idea/
 *.sln.iml
+# Unreal Engine Build Files
+Binaries/
+Build/
+Intermediate/
+DerivedDataCache/
+Saved/
+
+# Visual Studio / Rider
+.vs/
+.vscode/
+.idea/
+*.sln
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
 
 # Compiled Dynamic libraries
 *.so
@@ -47,6 +75,42 @@ DerivedDataCache/
 # macOS
 .DS_Store
 *.DS_Store
+*.ipa
+
+# Unreal Engine Specific
+*.uasset
+*.umap
+
+# OS Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary Files
+*.swp
+*.swo
+*~
+*.tmp
+*.log
+
+# User Specific
+*.user
+*.userprefs
+*.pidb
+
+# Mono / .NET
+.mono/
+Temp/
+Logs/
+
+# Backup files
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # Temporary files
 *.tmp
@@ -56,3 +120,8 @@ DerivedDataCache/
 
 # User settings
 *.ini
+*.swo
+
+# Build artifacts
+*.generated.h
+*.generated.cpp
