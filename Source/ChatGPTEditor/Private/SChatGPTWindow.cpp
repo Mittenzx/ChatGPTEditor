@@ -131,6 +131,10 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 					.IsReadOnly(true)
 					.Text(FText::FromString(ConversationHistory))
 					.AutoWrapText(true)
+					.Font(TAttribute<FSlateFontInfo>::Create(TAttribute<FSlateFontInfo>::FGetter::CreateLambda([this]()
+					{
+						return FCoreStyle::GetDefaultFontStyle("Regular", FontSize);
+					})))
 				]
 			]
 		]
@@ -561,10 +565,11 @@ ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 
 void SChatGPTWindow::UpdateFontSize()
 {
+	// Font is updated automatically through the TAttribute lambda
+	// Just invalidate the widget to force a refresh
 	if (ConversationHistoryBox.IsValid())
 	{
-		// Update the conversation history box font
-		ConversationHistoryBox->SetFont(FCoreStyle::GetDefaultFontStyle("Regular", FontSize));
+		ConversationHistoryBox->Invalidate(EInvalidateWidget::Layout);
 	}
 }
 
