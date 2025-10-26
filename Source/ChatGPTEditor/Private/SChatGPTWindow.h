@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
+#include "DocumentationHandler.h"
 
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
@@ -14,6 +15,7 @@ class SScrollBox;
  * Slate widget for ChatGPT window
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
+ * Supports documentation generation and code review features
  */
 class SChatGPTWindow : public SCompoundWidget
 {
@@ -29,10 +31,15 @@ private:
 	// UI event handlers
 	FReply OnSendMessageClicked();
 	FReply OnClearHistoryClicked();
+	FReply OnViewAuditLogClicked();
 	
 	// HTTP request handling
 	void SendRequestToOpenAI(const FString& UserMessage);
 	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	
+	// Documentation and code review handlers
+	void HandleDocumentationResponse(const FString& UserMessage, const FString& AssistantResponse);
+	void ShowDocumentationPreview(const FDocumentationChange& Change);
 	
 	// Helper functions
 	void AppendMessage(const FString& Role, const FString& Message);
@@ -58,6 +65,7 @@ private:
 	// Conversation state
 	FString ConversationHistory;
 	TArray<TSharedPtr<FJsonObject>> Messages;
+	FString LastUserMessage;  // Track last user message for documentation requests
 	
 	// Security permissions (default to OFF for safety)
 	bool bAllowAssetWrite = false;

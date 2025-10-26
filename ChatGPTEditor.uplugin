@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "ChatGPT Editor",
-	"Description": "Adds a Slate-based Editor tab for ChatGPT integration with OpenAI API. Includes security features and permission toggles for destructive operations.",
+	"Description": "Adds a Slate-based Editor tab for ChatGPT integration with OpenAI API. Includes security features, permission toggles for destructive operations, documentation generation, and code review capabilities.",
 	"Category": "Editor",
 	"CreatedBy": "ChatGPTEditor Contributors",
 	"CreatedByURL": "",
