@@ -129,6 +129,10 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 					.IsReadOnly(true)
 					.Text(FText::FromString(ConversationHistory))
 					.AutoWrapText(true)
+					.Font(TAttribute<FSlateFontInfo>::Create(TAttribute<FSlateFontInfo>::FGetter::CreateLambda([this]()
+					{
+						return FCoreStyle::GetDefaultFontStyle("Regular", FontSize);
+					})))
 				]
 			]
 		]
@@ -146,7 +150,8 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
 			[
 				SAssignNew(MessageInputBox, SEditableTextBox)
-				.HintText(LOCTEXT("MessageInputHint", "Type your message here..."))
+				.HintText(LOCTEXT("MessageInputHint", "Type your message here... (Ctrl+Enter to send)"))
+				.ToolTipText(LOCTEXT("MessageInputTooltip", "Enter your message to ChatGPT. Press Ctrl+Enter to send quickly."))
 			]
 			
 			// Send button
@@ -154,8 +159,9 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 			.AutoWidth()
 			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
 			[
-				SNew(SButton)
+				SAssignNew(SendButton, SButton)
 				.Text(LOCTEXT("SendButton", "Send"))
+				.ToolTipText(LOCTEXT("SendButtonTooltip", "Send message to ChatGPT (Ctrl+Enter)"))
 				.OnClicked(this, &SChatGPTWindow::OnSendMessageClicked)
 			]
 			
@@ -163,9 +169,57 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
 			[
-				SNew(SButton)
+				SAssignNew(ClearButton, SButton)
 				.Text(LOCTEXT("ClearButton", "Clear"))
+				.ToolTipText(LOCTEXT("ClearButtonTooltip", "Clear conversation history (Ctrl+L)"))
 				.OnClicked(this, &SChatGPTWindow::OnClearHistoryClicked)
+			]
+		]
+		
+		// Accessibility controls section
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(10.0f, 5.0f)
+		[
+			SNew(SHorizontalBox)
+			
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("AccessibilityLabel", "Accessibility:"))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 9))
+			]
+			
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("DecreaseFontButton", "A-"))
+				.ToolTipText(LOCTEXT("DecreaseFontTooltip", "Decrease font size (Ctrl+-)"))
+				.OnClicked(this, &SChatGPTWindow::OnDecreaseFontSize)
+			]
+			
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(this, &SChatGPTWindow::GetFontSizeButtonText)
+				.ToolTipText(LOCTEXT("ResetFontTooltip", "Reset font size to default (Ctrl+0)"))
+				.OnClicked(this, &SChatGPTWindow::OnResetFontSize)
+			]
+			
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("IncreaseFontButton", "A+"))
+				.ToolTipText(LOCTEXT("IncreaseFontTooltip", "Increase font size (Ctrl++)"))
+				.OnClicked(this, &SChatGPTWindow::OnIncreaseFontSize)
 			]
 		]
 		
@@ -175,9 +229,20 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 		.Padding(10.0f, 5.0f)
 		[
 			SNew(STextBlock)
-			.Text(LOCTEXT("APIKeyInfo", "Set OPENAI_API_KEY environment variable with your API key"))
+			.Text(LOCTEXT("APIKeyInfo", "💡 Tip: Set OPENAI_API_KEY environment variable with your API key"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Italic", 9))
 			.ColorAndOpacity(FSlateColor(FLinearColor(0.7f, 0.7f, 0.7f)))
+		]
+		
+		// Keyboard shortcuts info
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(10.0f, 2.0f)
+		[
+			SNew(STextBlock)
+			.Text(LOCTEXT("KeyboardShortcuts", "⌨️ Shortcuts: Ctrl+Enter=Send | Ctrl+L=Clear | Ctrl+/-=Font Size"))
+			.Font(FCoreStyle::GetDefaultFontStyle("Italic", 8))
+			.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
 		]
 	];
 }
@@ -219,8 +284,73 @@ FReply SChatGPTWindow::OnClearHistoryClicked()
 	return FReply::Handled();
 }
 
+FReply SChatGPTWindow::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+{
+	// Ctrl+Enter to send message
+	if (InKeyEvent.GetKey() == EKeys::Enter && InKeyEvent.IsControlDown())
+	{
+		return OnSendMessageClicked();
+	}
+	
+	// Ctrl+L to clear history
+	if (InKeyEvent.GetKey() == EKeys::L && InKeyEvent.IsControlDown())
+	{
+		return OnClearHistoryClicked();
+	}
+	
+	// Ctrl+Plus to increase font size
+	if ((InKeyEvent.GetKey() == EKeys::Equals || InKeyEvent.GetKey() == EKeys::Add) && InKeyEvent.IsControlDown())
+	{
+		return OnIncreaseFontSize();
+	}
+	
+	// Ctrl+Minus to decrease font size
+	if ((InKeyEvent.GetKey() == EKeys::Hyphen || InKeyEvent.GetKey() == EKeys::Subtract) && InKeyEvent.IsControlDown())
+	{
+		return OnDecreaseFontSize();
+	}
+	
+	// Ctrl+0 to reset font size
+	if (InKeyEvent.GetKey() == EKeys::Zero && InKeyEvent.IsControlDown())
+	{
+		return OnResetFontSize();
+	}
+	
+	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
+}
+
+FReply SChatGPTWindow::OnIncreaseFontSize()
+{
+	if (FontSize < MaxFontSize)
+	{
+		FontSize++;
+		UpdateFontSize();
+	}
+	return FReply::Handled();
+}
+
+FReply SChatGPTWindow::OnDecreaseFontSize()
+{
+	if (FontSize > MinFontSize)
+	{
+		FontSize--;
+		UpdateFontSize();
+	}
+	return FReply::Handled();
+}
+
+FReply SChatGPTWindow::OnResetFontSize()
+{
+	FontSize = DefaultFontSize;
+	UpdateFontSize();
+	return FReply::Handled();
+}
+
 void SChatGPTWindow::SendRequestToOpenAI(const FString& UserMessage)
 {
+	// Set request in progress
+	bIsRequestInProgress = true;
+	
 	// Create message object
 	TSharedPtr<FJsonObject> MessageObject = MakeShareable(new FJsonObject);
 	MessageObject->SetStringField(TEXT("role"), TEXT("user"));
@@ -260,11 +390,14 @@ void SChatGPTWindow::SendRequestToOpenAI(const FString& UserMessage)
 	// Send request
 	HttpRequest->ProcessRequest();
 	
-	AppendMessage(TEXT("System"), TEXT("Sending request to OpenAI..."));
+	AppendMessage(TEXT("System"), TEXT("⏳ Sending request to OpenAI..."));
 }
 
 void SChatGPTWindow::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
+	// Clear request in progress flag
+	bIsRequestInProgress = false;
+	
 	if (!bWasSuccessful || !Response.IsValid())
 	{
 		AppendMessage(TEXT("Error"), TEXT("Failed to connect to OpenAI API. Check your internet connection."));
@@ -460,6 +593,21 @@ ECheckBoxState SChatGPTWindow::GetConsoleCommandPermission() const
 ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 {
 	return bAllowFileIO ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+}
+
+void SChatGPTWindow::UpdateFontSize()
+{
+	// Font is updated automatically through the TAttribute lambda
+	// Just invalidate the widget to force a refresh
+	if (ConversationHistoryBox.IsValid())
+	{
+		ConversationHistoryBox->Invalidate(EInvalidateWidget::Layout);
+	}
+}
+
+FText SChatGPTWindow::GetFontSizeButtonText() const
+{
+	return FText::Format(LOCTEXT("FontSizeText", "Font Size: {0}"), FontSize);
 }
 
 #undef LOCTEXT_NAMESPACE
