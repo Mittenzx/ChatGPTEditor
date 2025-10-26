@@ -11,6 +11,7 @@ Saved/
 .idea/
 *.sln
 *.suo
+*.user
 *.sdf
 *.opensdf
 *.VC.db
@@ -69,3 +70,21 @@ Desktop.ini
 .mono/
 Temp/
 Logs/
+
+# Backup files
+*.bak
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*.swo
+
+# Build artifacts
+*.generated.h
+*.generated.cpp

@@ -9,6 +9,11 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 - **Security-First Design**: Permission toggles for potentially destructive operations
 - **Conversation History**: Maintains context throughout your ChatGPT conversation
 - **Environment-based API Keys**: Secure API key storage using environment variables
+- **Keyboard Shortcuts**: Efficient navigation and control with keyboard shortcuts
+- **Accessibility Features**: Adjustable font sizes and tooltips for all interactive elements
+- **Visual Feedback**: Icons and loading indicators for better user experience
+- **Editor Asset Automation**: Create and modify Unreal Engine assets using natural language prompts
+- **Audit Logging**: All asset operations are logged with timestamps and user information
 
 ## Installation
 
@@ -63,9 +68,105 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 ### Basic Conversation
 
 1. Type your message in the input box at the bottom
-2. Click "Send" to submit your message to ChatGPT
+2. Click "Send" or press **Ctrl+Enter** to submit your message to ChatGPT
 3. Responses will appear in the conversation history area
-4. Click "Clear" to start a new conversation
+4. Click "Clear" or press **Ctrl+L** to start a new conversation
+
+### Editor Asset Automation
+
+The plugin can automatically detect and execute asset operations from ChatGPT responses. When enabled, you can use natural language to create and manage assets:
+
+#### Supported Commands
+
+**Creating Assets:**
+- `Create material MyMaterial` - Creates a new material asset
+- `Create texture MyTexture` - Creates a new texture asset
+- `Create blueprint MyBlueprint` - Creates a new blueprint asset
+
+**Managing Assets:**
+- `Rename OldAssetName to NewAssetName` - Renames an existing asset
+- `Delete MyAsset` - Deletes an asset (requires confirmation)
+
+#### How It Works
+
+1. **Enable Asset Write Permission**: Check the "Allow Asset Write Operations" checkbox
+2. **Confirm the Warning**: Accept the security warning dialog
+3. **Send Natural Language Commands**: Ask ChatGPT to create or modify assets
+   - Example: "Create a material called M_GlowingMetal"
+4. **Review the Preview**: A confirmation dialog shows what will be created/modified
+5. **Confirm or Cancel**: Choose whether to proceed with the operation
+6. **Check Results**: The operation is logged and feedback appears in the conversation
+
+#### Security Features
+
+- **Confirmation Required**: Every asset operation requires explicit user confirmation
+- **Operation Preview**: See exactly what will happen before it executes
+- **Audit Logging**: All operations are logged to `Saved/ChatGPTEditor/audit.log`
+- **Permission Control**: Asset write must be explicitly enabled
+- **Destructive Operation Warnings**: Extra warnings for delete and rename operations
+
+#### Example Workflow
+
+```
+You: "Create a material called M_Metal and a texture called T_MetalBase"
+
+ChatGPT: "I'll help you create those assets. Create material M_Metal. Create texture T_MetalBase."
+
+System: Detected 2 asset operation(s) in response.
+System: Processing: Create Material - M_Metal
+[Confirmation Dialog Appears]
+System: ✓ Successfully executed: Create Material
+System: Processing: Create Texture - T_MetalBase
+[Confirmation Dialog Appears]
+System: ✓ Successfully executed: Create Texture
+```
+
+#### Audit Log
+
+All asset operations are logged to `Saved/ChatGPTEditor/audit.log` with:
+- Timestamp
+- User name
+- Operation type
+- Asset name
+- Success/failure status
+- Additional details
+
+Example log entry:
+```
+[2024-10-26 15:30:45] User: JohnDoe | Operation: Create Material | Asset: M_Metal | Success: YES | Details: Operation completed successfully
+```
+
+### Keyboard Shortcuts
+
+The plugin supports several keyboard shortcuts for efficient workflow:
+
+| Shortcut | Action |
+|----------|--------|
+| **Ctrl+Enter** | Send message to ChatGPT |
+| **Ctrl+L** | Clear conversation history |
+| **Ctrl+Plus** (+) | Increase font size |
+| **Ctrl+Minus** (-) | Decrease font size |
+| **Ctrl+0** | Reset font size to default |
+
+### Accessibility Features
+
+#### Adjustable Font Size
+- Use the **A-** button or **Ctrl+Minus** to decrease font size
+- Use the **A+** button or **Ctrl+Plus** to increase font size
+- Click the font size display or press **Ctrl+0** to reset to default
+- Font sizes range from 8pt to 24pt for comfortable reading
+
+#### Tooltips
+All interactive elements include helpful tooltips:
+- Hover over any button, checkbox, or input field to see its description
+- Security permission checkboxes show detailed warning information
+- Keyboard shortcuts are displayed in tooltips for quick reference
+
+#### Visual Indicators
+- 🔒 Icons indicate security-sensitive permissions
+- ⏳ Loading indicator shows when a request is being processed
+- 💡 Tips and helpful information are highlighted
+- ⌨️ Keyboard shortcuts reference is always visible at the bottom
 
 ### Blueprint Scripting Assistant
 
@@ -175,12 +276,29 @@ The plugin includes three permission toggles that are **disabled by default** fo
 - Disable permissions immediately after use
 - Maintain regular backups before enabling destructive permissions
 - Test in a separate project first
+- Review the audit log regularly to track asset operations
 
 ❌ **DON'T:**
 - Enable all permissions by default
 - Leave permissions enabled when not in use
 - Use on production projects without thorough testing
 - Trust AI-generated code without review
+- Ignore confirmation dialogs - always review what will be created/modified
+
+### Asset Automation Security
+
+✅ **DO:**
+- Always review the confirmation dialog before proceeding with asset operations
+- Check the audit log after operations to verify what was changed
+- Keep backups of your project before using asset automation
+- Test asset commands in a test project first
+- Understand what each command will do before confirming
+
+❌ **DON'T:**
+- Blindly confirm asset operations without reading the preview
+- Use asset automation on production assets without testing
+- Delete the audit log - it's your record of what changed
+- Ignore failed operations - check the audit log for details
 
 ### General Security
 
@@ -197,6 +315,7 @@ The plugin includes three permission toggles that are **disabled by default** fo
 - **Module Type**: Editor-only module (not included in packaged builds)
 - **Loading Phase**: Default
 - **Dependencies**: Core, CoreUObject, Engine, Slate, SlateCore, InputCore, UnrealEd, LevelEditor, HTTP, Json, JsonUtilities, BlueprintGraph, Kismet, KismetCompiler, GraphEditor
+- **Dependencies**: Core, CoreUObject, Engine, Slate, SlateCore, InputCore, UnrealEd, LevelEditor, HTTP, Json, JsonUtilities, AssetTools, AssetRegistry
 
 ### API Integration
 
@@ -236,6 +355,11 @@ ChatGPTEditor/
 │           ├── SBlueprintAssistantPanel.cpp # Blueprint assistant UI implementation
 │           ├── BlueprintAuditLog.h          # Audit logging system header
 │           └── BlueprintAuditLog.cpp        # Audit logging system implementation
+│           ├── AssetAutomation.h            # Asset automation parser
+│           └── AssetAutomation.cpp          # Asset automation implementation
+├── Saved/
+│   └── ChatGPTEditor/
+│       └── audit.log                        # Asset operations audit log
 └── README.md                                 # This file
 ```
 
@@ -245,7 +369,7 @@ ChatGPTEditor/
 
 - Ensure you've set the environment variable correctly
 - Restart Unreal Editor after setting the variable
-- Verify the variable is set: `echo %OPENAI_API_KEY%` (Windows) or `echo $OPENAI_API_KEY` (macOS/Linux)
+- Verify the variable is set: `echo %OPENAI_API_KEY%` (Windows) or `echo $OPENAI_API_KEY%` (macOS/Linux)
 
 ### "Failed to connect to OpenAI API"
 
@@ -264,6 +388,53 @@ ChatGPTEditor/
 - You've exceeded your API rate limit or quota
 - Check your OpenAI account usage and billing settings
 
+### Asset Operation Failed
+
+- Ensure "Allow Asset Write Operations" permission is enabled
+- Check that the asset name is valid (no special characters)
+- Verify the target path exists (e.g., /Game/Materials)
+- Review the audit log at `Saved/ChatGPTEditor/audit.log` for details
+- Make sure you confirmed the operation in the dialog
+
+### Asset Not Found for Rename/Delete
+
+- Ensure the asset name exactly matches an existing asset
+- Check the Content Browser for the correct asset name
+- Try using the full package path instead of just the name
+
+### Keyboard Shortcuts Not Working
+
+- Ensure the ChatGPT window has focus
+- On some systems, modifier keys may differ (try Cmd instead of Ctrl on macOS)
+- Check that no other plugins are intercepting the same shortcuts
+
+## Accessibility
+
+The ChatGPTEditor plugin is designed with accessibility in mind:
+
+### Visual Accessibility
+- **Adjustable Text Size**: Font sizes from 8pt to 24pt accommodate different visual needs
+- **High Contrast**: Uses Unreal Editor's standard styling for consistent contrast
+- **Visual Icons**: Emoji and symbols provide visual cues (🔒 for security, ⏳ for loading, etc.)
+- **Clear Layout**: Well-organized interface with clear visual hierarchy
+
+### Keyboard Accessibility
+- **Full Keyboard Navigation**: All functions accessible via keyboard shortcuts
+- **Tab Navigation**: Standard tab key navigation between UI elements
+- **No Mouse Required**: Can send messages, clear history, and adjust settings without mouse
+
+### Cognitive Accessibility
+- **Tooltips**: Every interactive element has descriptive tooltip text
+- **Consistent Layout**: Interface elements stay in predictable locations
+- **Clear Labels**: All buttons and controls are clearly labeled
+- **Status Indicators**: Visual feedback for ongoing operations
+
+### Best Practices for Accessible Use
+1. Adjust font size to your comfort level using Ctrl+/- or the accessibility buttons
+2. Hover over any element to see its tooltip description
+3. Use keyboard shortcuts for faster workflow without mouse dependency
+4. Enable only the permissions you need for clear security status
+
 ## Known Limitations
 
 - **Blueprint creation is conceptual**: The current implementation shows how Blueprint generation would work with preview and approval, but actual Blueprint node creation requires deeper integration with Blueprint editor APIs
@@ -271,6 +442,11 @@ ChatGPTEditor/
 - **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
 - **No streaming responses**: Responses arrive all at once rather than streaming
 - **Blueprint explanation is AI-based**: Explanations are generated by AI based on Blueprint names, not actual Blueprint analysis
+- **Asset automation requires specific command formats**: Commands must follow the documented patterns (e.g., "Create material X")
+- **No local AI support**: Requires internet connection and OpenAI API access
+- **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
+- **No streaming responses**: Responses arrive all at once rather than streaming
+- **Asset operations create basic assets**: Created assets have default settings and may need manual configuration
 
 ## Future Enhancements
 
@@ -282,6 +458,9 @@ Potential features for future versions:
 - Conversation save/load functionality
 - Advanced Blueprint refactoring suggestions
 - Multi-model support (GPT-4, etc.)
+- Screen reader support (ARIA-like attributes)
+- High-contrast theme toggle
+- Customizable keyboard shortcuts
 
 ## Contributing
 
@@ -329,6 +508,21 @@ For issues, questions, or suggestions:
 - Security-first design with manual approval required
 - Export audit logs for compliance and review
 - UE5.5 compatibility maintained
+### 1.1.0 (Current - UX, Accessibility & Asset Automation)
+### 1.1.0 (Current - UX & Accessibility Update)
+- ✨ NEW: Keyboard shortcuts for common actions (Ctrl+Enter, Ctrl+L, etc.)
+- ✨ NEW: Adjustable font sizes (8-24pt) with keyboard shortcuts
+- ✨ NEW: Comprehensive tooltips on all interactive elements
+- ✨ NEW: Visual indicators and icons for better UX
+- ✨ NEW: Loading indicators for API requests
+- ✨ NEW: Accessibility controls section
+- ✨ NEW: Editor Asset Automation with natural language commands
+- ✨ NEW: Audit logging for all asset operations
+- ✨ NEW: Confirmation dialogs with preview before asset changes
+- 📚 Enhanced documentation with keyboard shortcuts guide
+- 📚 Asset automation usage examples and security notes
+- 📚 Enhanced documentation with keyboard shortcuts guide
+- 🎨 Improved visual hierarchy and spacing
 
 ### 1.0.0
 - Initial release
