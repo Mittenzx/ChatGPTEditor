@@ -367,17 +367,19 @@ bool FAssetAutomation::RenameAsset(const FAssetOperation& Operation)
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 	
-	// Find the asset
+	// Find the asset by searching all assets with the given name
 	TArray<FAssetData> AssetDataList;
-	AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
+	AssetRegistry.GetAssetsByClass(UObject::StaticClass()->GetClassPathName(), AssetDataList);
+	
+	// Filter by asset name
+	AssetDataList = AssetDataList.FilterByPredicate([&](const FAssetData& Data) {
+		return Data.AssetName.ToString() == Operation.AssetName;
+	});
 	
 	if (AssetDataList.Num() == 0)
 	{
-		// Try to find by asset name alone
-		AssetRegistry.GetAssetsByClass(UObject::StaticClass()->GetFName(), AssetDataList);
-		AssetDataList = AssetDataList.FilterByPredicate([&](const FAssetData& Data) {
-			return Data.AssetName.ToString() == Operation.AssetName;
-		});
+		// Try as package name
+		AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
 	}
 	
 	if (AssetDataList.Num() == 0)
@@ -418,17 +420,19 @@ bool FAssetAutomation::DeleteAsset(const FAssetOperation& Operation)
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 	
-	// Find the asset
+	// Find the asset by searching all assets with the given name
 	TArray<FAssetData> AssetDataList;
-	AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
+	AssetRegistry.GetAssetsByClass(UObject::StaticClass()->GetClassPathName(), AssetDataList);
+	
+	// Filter by asset name
+	AssetDataList = AssetDataList.FilterByPredicate([&](const FAssetData& Data) {
+		return Data.AssetName.ToString() == Operation.AssetName;
+	});
 	
 	if (AssetDataList.Num() == 0)
 	{
-		// Try to find by asset name alone
-		AssetRegistry.GetAssetsByClass(UObject::StaticClass()->GetFName(), AssetDataList);
-		AssetDataList = AssetDataList.FilterByPredicate([&](const FAssetData& Data) {
-			return Data.AssetName.ToString() == Operation.AssetName;
-		});
+		// Try as package name
+		AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
 	}
 	
 	if (AssetDataList.Num() == 0)
