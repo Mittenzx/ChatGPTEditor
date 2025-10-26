@@ -9,6 +9,8 @@
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
 class SScrollBox;
+class FChatGPTConsoleHandler;
+class FChatGPTPythonHandler;
 class SButton;
 struct FBlueprintPreviewData;
 struct FBlueprintExplanation;
@@ -17,6 +19,7 @@ struct FBlueprintExplanation;
  * Slate widget for ChatGPT window
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
+ * Supports console command execution and Python script generation
  * Includes Blueprint Scripting Assistant for generating and explaining Blueprints
  * Includes Asset Automation for creating and managing Unreal Engine assets
  * Includes accessibility features like adjustable font sizes and keyboard shortcuts
@@ -31,6 +34,8 @@ public:
 	/** Constructs this widget with InArgs */
 	void Construct(const FArguments& InArgs);
 	
+	/** Destructor */
+	virtual ~SChatGPTWindow();
 	/** Handle keyboard input for shortcuts */
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 
@@ -61,6 +66,12 @@ private:
 	// Asset automation
 	void ProcessAssetAutomation(const FString& Response);
 	
+	// Response processing
+	void ProcessAssistantResponse(const FString& Response);
+	bool TryExecuteConsoleCommand(const FString& Response);
+	bool TryExecutePythonScript(const FString& Response);
+	FString ExtractCodeBlock(const FString& Response, const FString& Language) const;
+	
 	// Helper functions
 	void AppendMessage(const FString& Role, const FString& Message);
 	FString GetAPIKey() const;
@@ -74,11 +85,13 @@ private:
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
 	void OnFileIOPermissionChanged(ECheckBoxState NewState);
+	void OnPythonScriptingPermissionChanged(ECheckBoxState NewState);
 	void OnSceneEditingPermissionChanged(ECheckBoxState NewState);
 	
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
+	ECheckBoxState GetPythonScriptingPermission() const;
 	ECheckBoxState GetSceneEditingPermission() const;
 	
 	// Scene editing
@@ -107,6 +120,11 @@ private:
 	bool bAllowAssetWrite = false;
 	bool bAllowConsoleCommands = false;
 	bool bAllowFileIO = false;
+	bool bAllowPythonScripting = false;
+	
+	// Console and scripting handlers
+	TSharedPtr<FChatGPTConsoleHandler> ConsoleHandler;
+	TSharedPtr<FChatGPTPythonHandler> PythonHandler;
 	bool bAllowSceneEditing = false;
 	
 	// Blueprint assistant state

@@ -28,6 +28,7 @@ public class ChatGPTEditor : ModuleRules
 				"HTTP",
 				"Json",
 				"JsonUtilities",
+				"PythonScriptPlugin"
 				"BlueprintGraph",
 				"Kismet",
 				"KismetCompiler",
