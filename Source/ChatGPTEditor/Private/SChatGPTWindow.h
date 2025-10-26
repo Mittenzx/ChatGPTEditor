@@ -97,14 +97,43 @@ private:
 	
 	// Test automation helpers
 	void SendTestGenerationRequest(const FString& TestPrompt, const FString& TestType);
+	/**
+	 * Callback when test generation response is received from OpenAI
+	 * @param Request The HTTP request
+	 * @param Response The HTTP response containing test code
+	 * @param bWasSuccessful Whether the request was successful
+	 */
 	void OnTestGenerationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	
+	/**
+	 * Show preview dialog for generated test code
+	 * @param TestCode The generated test code
+	 * @param TestName Name of the test
+	 */
 	void ShowTestCodePreview(const FString& TestCode, const FString& TestName);
+	
+	/**
+	 * Execute a test by name
+	 * @param TestName Name of the test to execute
+	 */
 	void ExecuteTest(const FString& TestName);
+	
+	/**
+	 * Display test execution results
+	 * @param TestName Name of the test
+	 * @param bSuccess Whether test passed
+	 * @param Results Test output/results
+	 */
 	void DisplayTestResults(const FString& TestName, bool bSuccess, const FString& Results);
-	// Asset automation
+	
+	/**
+	 * Process ChatGPT response for asset automation commands
+	 * Detects and executes asset creation/modification commands
+	 * @param Response The ChatGPT response text
+	 */
 	void ProcessAssetAutomation(const FString& Response);
 	
-	// Permission toggle handlers
+	// Permission toggle handlers - called when security checkboxes are changed
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
 	void OnFileIOPermissionChanged(ECheckBoxState NewState);
@@ -112,17 +141,48 @@ private:
 	void OnPythonScriptingPermissionChanged(ECheckBoxState NewState);
 	void OnSceneEditingPermissionChanged(ECheckBoxState NewState);
 	
+	// Permission state getters - return current state of security checkboxes
 	ECheckBoxState GetAssetWritePermission() const;
 	ECheckBoxState GetConsoleCommandPermission() const;
 	ECheckBoxState GetFileIOPermission() const;
 	ECheckBoxState GetExternalAPIPermission() const;
 	
-	// External API handlers
+	/**
+	 * Process potential external API request from user message
+	 * @param UserMessage The user's message that might contain an API request
+	 */
 	void ProcessPotentialAPIRequest(const FString& UserMessage);
+	
+	/**
+	 * Show preview dialog for external API request
+	 * @param Details The API request details to preview
+	 */
 	void ShowAPIPreviewDialog(const FAPIRequestDetails& Details);
+	
+	/**
+	 * Callback when user approves an API request
+	 * @param Details The approved API request details
+	 */
 	void OnAPIRequestApproved(const FAPIRequestDetails& Details);
+	
+	/**
+	 * Callback when user denies an API request
+	 * @param Details The denied API request details
+	 */
 	void OnAPIRequestDenied(const FAPIRequestDetails& Details);
+	
+	/**
+	 * Callback when API execution completes
+	 * @param bSuccess Whether the API call succeeded
+	 * @param Response The API response
+	 */
 	void OnAPIExecutionComplete(bool bSuccess, const FString& Response);
+	
+	/**
+	 * Show preview dialog for generated code
+	 * @param Code The generated code
+	 * @param Description Description of what the code does
+	 */
 	void ShowCodePreviewDialog(const FString& Code, const FString& Description);
 	
 	// Test type combo box helpers
@@ -132,17 +192,40 @@ private:
 	ECheckBoxState GetPythonScriptingPermission() const;
 	ECheckBoxState GetSceneEditingPermission() const;
 	
-	// Scene editing
+	/**
+	 * Process scene editing command from ChatGPT
+	 * @param Command The scene editing command to process
+	 */
 	void ProcessSceneEditingCommand(const FString& Command);
+	
+	/** Show the audit log viewer */
 	FReply OnViewAuditLogClicked();
 	
 	// Accessibility helpers
 	void UpdateFontSize();
 	FText GetFontSizeButtonText() const;
 
-	// File operation handlers
+	/**
+	 * Process file operation from ChatGPT response
+	 * @param AssistantMessage The assistant's message containing file operation
+	 */
 	void ProcessFileOperation(const FString& AssistantMessage);
+	
+	/**
+	 * Extract file operation command from message
+	 * @param Message The message to parse
+	 * @param OutCommand The extracted command
+	 * @param OutFilePath The target file path
+	 * @param OutContent The file content
+	 * @return True if command was successfully extracted
+	 */
 	bool ExtractFileOperationCommand(const FString& Message, FString& OutCommand, FString& OutFilePath, FString& OutContent);
+	
+	/**
+	 * Show file change preview dialog
+	 * @param FilePath The file to be changed
+	 * @param NewContent The new file content
+	 */
 	void ShowFileChangePreview(const FString& FilePath, const FString& NewContent);
 
 private:

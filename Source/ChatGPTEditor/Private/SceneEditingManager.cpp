@@ -183,10 +183,11 @@ TArray<AActor*> FSceneEditingManager::SpawnActors(const FSceneEditAction& Action
 		SpawnLocation = FindPlayerStartLocation(World);
 	}
 
-	// Spawn the requested number of actors
+	// Spawn the requested number of actors with spacing between them
+	static const float ActorSpacingDistance = 100.0f; // Units between spawned actors
 	for (int32 i = 0; i < Action.Count; ++i)
 	{
-		FVector OffsetLocation = SpawnLocation + FVector(i * 100.0f, 0.0f, 0.0f);
+		FVector OffsetLocation = SpawnLocation + FVector(i * ActorSpacingDistance, 0.0f, 0.0f);
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
@@ -378,15 +379,15 @@ FString FSceneEditingManager::ParseActorType(const FString& Command)
 int32 FSceneEditingManager::ParseCount(const FString& Command)
 {
 	// Look for numbers in the command
-	FString Numbers = TEXT("0123456789");
+	static const int32 MaxParsableCount = 100; // Maximum count we'll try to parse
 	
-	for (int32 i = 1; i <= 100; ++i)
+	for (int32 i = 1; i <= MaxParsableCount; ++i)
 	{
 		if (Command.Contains(FString::FromInt(i)))
 			return i;
 	}
 
-	return 1; // Default to 1
+	return 1; // Default to 1 if no count specified
 }
 
 FVector FSceneEditingManager::ParseLocation(const FString& Command, UWorld* World)
@@ -400,11 +401,14 @@ FVector FSceneEditingManager::ParseMovementOffset(const FString& Command)
 	FString LowerCommand = Command.ToLower();
 	FVector Offset = FVector::ZeroVector;
 
+	// Maximum units we'll try to parse from natural language
+	static const int32 MaxParsableUnits = 1000;
+
 	// Parse movement directions
 	if (LowerCommand.Contains(TEXT("up")))
 	{
 		// Look for units
-		for (int32 i = 1; i <= 1000; ++i)
+		for (int32 i = 1; i <= MaxParsableUnits; ++i)
 		{
 			if (Command.Contains(FString::FromInt(i)))
 			{
