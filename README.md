@@ -9,6 +9,9 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 - **Security-First Design**: Permission toggles for potentially destructive operations
 - **Conversation History**: Maintains context throughout your ChatGPT conversation
 - **Environment-based API Keys**: Secure API key storage using environment variables
+- **Keyboard Shortcuts**: Efficient navigation and control with keyboard shortcuts
+- **Accessibility Features**: Adjustable font sizes and tooltips for all interactive elements
+- **Visual Feedback**: Icons and loading indicators for better user experience
 - **Editor Asset Automation**: Create and modify Unreal Engine assets using natural language prompts
 - **Audit Logging**: All asset operations are logged with timestamps and user information
 
@@ -65,9 +68,9 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 ### Basic Conversation
 
 1. Type your message in the input box at the bottom
-2. Click "Send" to submit your message to ChatGPT
+2. Click "Send" or press **Ctrl+Enter** to submit your message to ChatGPT
 3. Responses will appear in the conversation history area
-4. Click "Clear" to start a new conversation
+4. Click "Clear" or press **Ctrl+L** to start a new conversation
 
 ### Editor Asset Automation
 
@@ -132,6 +135,38 @@ Example log entry:
 ```
 [2024-10-26 15:30:45] User: JohnDoe | Operation: Create Material | Asset: M_Metal | Success: YES | Details: Operation completed successfully
 ```
+
+### Keyboard Shortcuts
+
+The plugin supports several keyboard shortcuts for efficient workflow:
+
+| Shortcut | Action |
+|----------|--------|
+| **Ctrl+Enter** | Send message to ChatGPT |
+| **Ctrl+L** | Clear conversation history |
+| **Ctrl+Plus** (+) | Increase font size |
+| **Ctrl+Minus** (-) | Decrease font size |
+| **Ctrl+0** | Reset font size to default |
+
+### Accessibility Features
+
+#### Adjustable Font Size
+- Use the **A-** button or **Ctrl+Minus** to decrease font size
+- Use the **A+** button or **Ctrl+Plus** to increase font size
+- Click the font size display or press **Ctrl+0** to reset to default
+- Font sizes range from 8pt to 24pt for comfortable reading
+
+#### Tooltips
+All interactive elements include helpful tooltips:
+- Hover over any button, checkbox, or input field to see its description
+- Security permission checkboxes show detailed warning information
+- Keyboard shortcuts are displayed in tooltips for quick reference
+
+#### Visual Indicators
+- 🔒 Icons indicate security-sensitive permissions
+- ⏳ Loading indicator shows when a request is being processed
+- 💡 Tips and helpful information are highlighted
+- ⌨️ Keyboard shortcuts reference is always visible at the bottom
 
 ### Security Permissions
 
@@ -256,7 +291,7 @@ ChatGPTEditor/
 
 - Ensure you've set the environment variable correctly
 - Restart Unreal Editor after setting the variable
-- Verify the variable is set: `echo %OPENAI_API_KEY%` (Windows) or `echo $OPENAI_API_KEY` (macOS/Linux)
+- Verify the variable is set: `echo %OPENAI_API_KEY%` (Windows) or `echo $OPENAI_API_KEY%` (macOS/Linux)
 
 ### "Failed to connect to OpenAI API"
 
@@ -289,6 +324,39 @@ ChatGPTEditor/
 - Check the Content Browser for the correct asset name
 - Try using the full package path instead of just the name
 
+### Keyboard Shortcuts Not Working
+
+- Ensure the ChatGPT window has focus
+- On some systems, modifier keys may differ (try Cmd instead of Ctrl on macOS)
+- Check that no other plugins are intercepting the same shortcuts
+
+## Accessibility
+
+The ChatGPTEditor plugin is designed with accessibility in mind:
+
+### Visual Accessibility
+- **Adjustable Text Size**: Font sizes from 8pt to 24pt accommodate different visual needs
+- **High Contrast**: Uses Unreal Editor's standard styling for consistent contrast
+- **Visual Icons**: Emoji and symbols provide visual cues (🔒 for security, ⏳ for loading, etc.)
+- **Clear Layout**: Well-organized interface with clear visual hierarchy
+
+### Keyboard Accessibility
+- **Full Keyboard Navigation**: All functions accessible via keyboard shortcuts
+- **Tab Navigation**: Standard tab key navigation between UI elements
+- **No Mouse Required**: Can send messages, clear history, and adjust settings without mouse
+
+### Cognitive Accessibility
+- **Tooltips**: Every interactive element has descriptive tooltip text
+- **Consistent Layout**: Interface elements stay in predictable locations
+- **Clear Labels**: All buttons and controls are clearly labeled
+- **Status Indicators**: Visual feedback for ongoing operations
+
+### Best Practices for Accessible Use
+1. Adjust font size to your comfort level using Ctrl+/- or the accessibility buttons
+2. Hover over any element to see its tooltip description
+3. Use keyboard shortcuts for faster workflow without mouse dependency
+4. Enable only the permissions you need for clear security status
+
 ## Known Limitations
 
 - **Asset automation requires specific command formats**: Commands must follow the documented patterns (e.g., "Create material X")
@@ -307,6 +375,9 @@ Potential features for future versions:
 - Code generation assistance
 - Asset analysis and recommendations
 - Multi-model support (GPT-4, etc.)
+- Screen reader support (ARIA-like attributes)
+- High-contrast theme toggle
+- Customizable keyboard shortcuts
 
 ## Contributing
 
@@ -345,7 +416,21 @@ For issues, questions, or suggestions:
 
 ## Version History
 
-### 1.0.0 (Current)
+### 1.1.0 (Current - UX, Accessibility & Asset Automation)
+- ✨ NEW: Keyboard shortcuts for common actions (Ctrl+Enter, Ctrl+L, etc.)
+- ✨ NEW: Adjustable font sizes (8-24pt) with keyboard shortcuts
+- ✨ NEW: Comprehensive tooltips on all interactive elements
+- ✨ NEW: Visual indicators and icons for better UX
+- ✨ NEW: Loading indicators for API requests
+- ✨ NEW: Accessibility controls section
+- ✨ NEW: Editor Asset Automation with natural language commands
+- ✨ NEW: Audit logging for all asset operations
+- ✨ NEW: Confirmation dialogs with preview before asset changes
+- 📚 Enhanced documentation with keyboard shortcuts guide
+- 📚 Asset automation usage examples and security notes
+- 🎨 Improved visual hierarchy and spacing
+
+### 1.0.0
 - Initial release
 - Basic ChatGPT integration
 - Security permission toggles (UI only)
