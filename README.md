@@ -74,6 +74,8 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 
 The plugin supports natural language commands for level design and scene editing. **This feature requires the "Allow Scene Editing" permission to be enabled.**
 
+**For detailed examples and advanced usage, see [SCENE_EDITING_EXAMPLES.md](SCENE_EDITING_EXAMPLES.md)**
+
 #### Supported Commands
 
 **Spawning Actors:**
