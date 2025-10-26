@@ -364,25 +364,8 @@ bool FAssetAutomation::RenameAsset(const FAssetOperation& Operation)
 		return false;
 	}
 	
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-	
-	// Find the asset by searching all assets with the given name
-	TArray<FAssetData> AssetDataList;
-	AssetRegistry.GetAssetsByClass(UObject::StaticClass()->GetClassPathName(), AssetDataList);
-	
-	// Filter by asset name
-	AssetDataList = AssetDataList.FilterByPredicate([&](const FAssetData& Data) {
-		return Data.AssetName.ToString() == Operation.AssetName;
-	});
-	
-	if (AssetDataList.Num() == 0)
-	{
-		// Try as package name
-		AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
-	}
-	
-	if (AssetDataList.Num() == 0)
+	FAssetData AssetData = FindAssetByName(Operation.AssetName);
+	if (!AssetData.IsValid())
 	{
 		return false;
 	}
@@ -392,7 +375,7 @@ bool FAssetAutomation::RenameAsset(const FAssetOperation& Operation)
 	
 	// Rename the asset
 	TArray<FAssetRenameData> RenameData;
-	FAssetRenameData NewRenameData(AssetDataList[0].GetAsset(), AssetDataList[0].PackagePath.ToString(), Operation.NewName);
+	FAssetRenameData NewRenameData(AssetData.GetAsset(), AssetData.PackagePath.ToString(), Operation.NewName);
 	RenameData.Add(NewRenameData);
 	
 	return AssetTools.RenameAssets(RenameData);
@@ -417,34 +400,74 @@ bool FAssetAutomation::DeleteAsset(const FAssetOperation& Operation)
 		return false;
 	}
 	
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-	
-	// Find the asset by searching all assets with the given name
-	TArray<FAssetData> AssetDataList;
-	AssetRegistry.GetAssetsByClass(UObject::StaticClass()->GetClassPathName(), AssetDataList);
-	
-	// Filter by asset name
-	AssetDataList = AssetDataList.FilterByPredicate([&](const FAssetData& Data) {
-		return Data.AssetName.ToString() == Operation.AssetName;
-	});
-	
-	if (AssetDataList.Num() == 0)
-	{
-		// Try as package name
-		AssetRegistry.GetAssetsByPackageName(FName(*Operation.AssetName), AssetDataList);
-	}
-	
-	if (AssetDataList.Num() == 0)
+	FAssetData AssetData = FindAssetByName(Operation.AssetName);
+	if (!AssetData.IsValid())
 	{
 		return false;
 	}
 	
 	// Delete the asset
 	TArray<UObject*> ObjectsToDelete;
-	ObjectsToDelete.Add(AssetDataList[0].GetAsset());
+	ObjectsToDelete.Add(AssetData.GetAsset());
 	
 	return ObjectTools::DeleteObjects(ObjectsToDelete, true) > 0;
+}
+
+FAssetData FAssetAutomation::FindAssetByName(const FString& AssetName)
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+	
+	// First, try as a package path
+	TArray<FAssetData> AssetDataList;
+	AssetRegistry.GetAssetsByPackageName(FName(*AssetName), AssetDataList);
+	
+	if (AssetDataList.Num() > 0)
+	{
+		return AssetDataList[0];
+	}
+	
+	// Try to construct common package paths and search there
+	TArray<FString> CommonPaths = {
+		TEXT("/Game/Materials/") + AssetName,
+		TEXT("/Game/Textures/") + AssetName,
+		TEXT("/Game/Blueprints/") + AssetName,
+		TEXT("/Game/") + AssetName
+	};
+	
+	for (const FString& Path : CommonPaths)
+	{
+		AssetRegistry.GetAssetsByPackageName(FName(*Path), AssetDataList);
+		if (AssetDataList.Num() > 0)
+		{
+			return AssetDataList[0];
+		}
+	}
+	
+	// Last resort: Search by asset name in specific directories
+	// This is more efficient than searching all assets
+	TArray<FString> PathsToSearch = {
+		TEXT("/Game/Materials"),
+		TEXT("/Game/Textures"),
+		TEXT("/Game/Blueprints"),
+		TEXT("/Game")
+	};
+	
+	for (const FString& SearchPath : PathsToSearch)
+	{
+		AssetRegistry.GetAssetsByPath(FName(*SearchPath), AssetDataList, true);
+		
+		for (const FAssetData& Data : AssetDataList)
+		{
+			if (Data.AssetName.ToString() == AssetName)
+			{
+				return Data;
+			}
+		}
+	}
+	
+	// Return invalid asset data if not found
+	return FAssetData();
 }
 
 #undef LOCTEXT_NAMESPACE

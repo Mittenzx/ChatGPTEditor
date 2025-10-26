@@ -170,4 +170,11 @@ private:
 	 * @return True if successful
 	 */
 	static bool DeleteAsset(const FAssetOperation& Operation);
+
+	/**
+	 * Find an asset by name or package path
+	 * @param AssetName The name or package path of the asset to find
+	 * @return The asset data if found, or invalid asset data
+	 */
+	static FAssetData FindAssetByName(const FString& AssetName);
 };
