@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SChatGPTWindow.h"
+#include "DocumentationHandler.h"
+#include "AuditLog.h"
 #include "AuditLogger.h"
 #include "ProjectFileManager.h"
 #include "ChatGPTConsoleHandler.h"
@@ -52,9 +54,24 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 		.AutoHeight()
 		.Padding(10.0f)
 		[
-			SNew(STextBlock)
-			.Text(LOCTEXT("ChatGPTTitle", "ChatGPT - OpenAI Integration"))
-			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 16))
+			SNew(SHorizontalBox)
+			
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("ChatGPTTitle", "ChatGPT - OpenAI Integration"))
+				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 16))
+			]
+			
+			// Audit Log button
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("ViewAuditLog", "View Audit Log"))
+				.OnClicked(this, &SChatGPTWindow::OnViewAuditLogClicked)
+			]
 		]
 		
 		+ SVerticalBox::Slot()
@@ -368,9 +385,11 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 		.Padding(10.0f, 5.0f)
 		[
 			SNew(STextBlock)
+			.Text(LOCTEXT("APIKeyInfo", "Set OPENAI_API_KEY environment variable. Supports: code explanations, documentation generation, and code review."))
 			.Text(LOCTEXT("APIKeyInfo", "💡 Tip: Set OPENAI_API_KEY environment variable with your API key"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Italic", 9))
 			.ColorAndOpacity(FSlateColor(FLinearColor(0.7f, 0.7f, 0.7f)))
+			.AutoWrapText(true)
 		]
 		
 		// Keyboard shortcuts info
@@ -436,6 +455,23 @@ FReply SChatGPTWindow::OnSendMessageClicked()
 	if (UserMessage.IsEmpty())
 	{
 		return FReply::Handled();
+	}
+	
+	// Store the user message for later processing
+	LastUserMessage = UserMessage;
+	
+	// Log the request
+	if (FDocumentationHandler::IsDocumentationRequest(UserMessage))
+	{
+		FAuditLog::Get().LogOperation(TEXT("DocumentationRequest"), UserMessage);
+	}
+	else if (FDocumentationHandler::IsCodeExplanationRequest(UserMessage))
+	{
+		FAuditLog::Get().LogOperation(TEXT("CodeExplanationRequest"), UserMessage);
+	}
+	else
+	{
+		FAuditLog::Get().LogOperation(TEXT("ChatRequest"), UserMessage);
 	}
 	
 	// Append user message to conversation
@@ -677,6 +713,8 @@ void SChatGPTWindow::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePt
 		
 		AppendMessage(TEXT("Assistant"), AssistantMessage);
 		
+		// Check if this was a documentation request and handle accordingly
+		HandleDocumentationResponse(LastUserMessage, AssistantMessage);
 		// Process any file operations in the response
 		ProcessFileOperation(AssistantMessage);
 		// Process the response for executable content
@@ -850,6 +888,56 @@ ECheckBoxState SChatGPTWindow::GetFileIOPermission() const
 	return bAllowFileIO ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
 }
 
+void SChatGPTWindow::HandleDocumentationResponse(const FString& UserMessage, const FString& AssistantResponse)
+{
+	// Only process if it's a documentation request and File I/O permission is enabled
+	if (!FDocumentationHandler::IsDocumentationRequest(UserMessage))
+	{
+		return;
+	}
+	
+	if (!bAllowFileIO)
+	{
+		AppendMessage(TEXT("System"), 
+			TEXT("Note: This appears to be a documentation request. Enable 'Allow File I/O Operations' to save documentation changes."));
+		return;
+	}
+	
+	// Try to parse the response for documentation changes
+	FDocumentationChange Change;
+	if (FDocumentationHandler::ParseDocumentationRequest(UserMessage, AssistantResponse, Change))
+	{
+		ShowDocumentationPreview(Change);
+	}
+}
+
+void SChatGPTWindow::ShowDocumentationPreview(const FDocumentationChange& Change)
+{
+	// Show preview in conversation
+	FString Preview = FDocumentationHandler::PreviewChange(Change);
+	AppendMessage(TEXT("System"), Preview);
+	
+	// Ask user for confirmation
+	FText ConfirmMessage = FText::Format(
+		LOCTEXT("ConfirmDocChange", 
+			"Do you want to apply this documentation change?\n\nFile: {0}\n\nThis will modify the file on disk."),
+		FText::FromString(Change.FilePath)
+	);
+	
+	EAppReturnType::Type Result = FMessageDialog::Open(EAppMsgType::YesNo, ConfirmMessage);
+	
+	if (Result == EAppReturnType::Yes)
+	{
+		FString Error;
+		if (FDocumentationHandler::ApplyChange(Change, Error))
+		{
+			AppendMessage(TEXT("System"), 
+				FString::Printf(TEXT("Successfully applied documentation change to: %s"), *Change.FilePath));
+		}
+		else
+		{
+			AppendMessage(TEXT("Error"), 
+				FString::Printf(TEXT("Failed to apply documentation change: %s"), *Error));
 bool SChatGPTWindow::ExtractFileOperationCommand(const FString& Message, FString& OutCommand, FString& OutFilePath, FString& OutContent)
 {
 	// Look for file operation commands in the message
@@ -1189,12 +1277,40 @@ void SChatGPTWindow::ProcessSceneEditingCommand(const FString& Command)
 	}
 	else
 	{
+		AppendMessage(TEXT("System"), TEXT("Documentation change cancelled by user."));
+		FAuditLog::Get().LogOperation(TEXT("DocChangeCancelled"), TEXT("User declined to apply changes"), Change.FilePath, true);
 		AppendMessage(TEXT("System"), TEXT("Scene editing actions cancelled by user."));
 	}
 }
 
 FReply SChatGPTWindow::OnViewAuditLogClicked()
 {
+	TArray<FAuditLogEntry> Entries = FAuditLog::Get().GetEntries();
+	
+	FString AuditLogText = TEXT("=== AUDIT LOG ===\n\n");
+	
+	if (Entries.Num() == 0)
+	{
+		AuditLogText += TEXT("No entries yet.\n");
+	}
+	else
+	{
+		// Show last 50 entries
+		int32 StartIdx = FMath::Max(0, Entries.Num() - 50);
+		for (int32 i = StartIdx; i < Entries.Num(); ++i)
+		{
+			AuditLogText += Entries[i].ToString() + TEXT("\n");
+		}
+	}
+	
+	AuditLogText += TEXT("\n=== END OF AUDIT LOG ===");
+	
+	// Display in a message dialog
+	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(AuditLogText));
+	
+	return FReply::Handled();
+}
+
 	// Get the audit log
 	FString LogText = FAuditLogger::Get().ExportLogToString();
 

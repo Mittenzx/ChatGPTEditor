@@ -17,6 +17,10 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 - **Audit Logging**: Complete tracking of all scene editing operations
 - **Conversation History**: Maintains context throughout your ChatGPT conversation
 - **Environment-based API Keys**: Secure API key storage using environment variables
+- **📝 Documentation Generation**: Generate or update documentation files (README, guides) from natural language prompts
+- **🔍 Code Review & Explanation**: Request explanations for code, assets, or project structure
+- **📋 Audit Logging**: Complete audit trail of all documentation and code review operations
+- **✅ Preview & Confirm**: All documentation changes are previewed and require explicit confirmation
 - **Editor Console Commands**: Execute Unreal Editor console commands via natural language (with permission gating)
 - **Python Scripting**: Generate and execute Python scripts to automate Editor tasks (with preview and confirmation)
 - **Audit Logging**: All console and scripting actions are logged to Saved/ChatGPTEditor/audit.log
@@ -465,6 +469,50 @@ When ChatGPT generates a file modification:
 4. **Confirm**: Click "Yes" to apply the changes or "No" to cancel
 5. **Verify**: Check the audit log at `Saved/ChatGPTEditor/audit.log` for the operation record
 
+### Documentation and Code Review Features
+
+The plugin now supports advanced documentation and code review capabilities:
+
+#### Code Explanation
+
+Ask ChatGPT to explain code, classes, or project structure using natural language:
+
+**Examples:**
+- "Explain this class" (when discussing a specific class in conversation)
+- "Summarize the plugin architecture"
+- "What does the SChatGPTWindow class do?"
+- "Review the security implementation"
+- "How does the audit logging work?"
+
+These requests are automatically logged in the audit trail but don't modify any files.
+
+#### Documentation Generation
+
+Request ChatGPT to generate or update documentation files:
+
+**Examples:**
+- "Generate a README for this feature"
+- "Update the documentation with the new features"
+- "Create API documentation"
+- "Write a usage guide"
+
+**Important:** 
+- Documentation operations require the **File I/O Operations** permission to be enabled
+- All proposed changes are **previewed** before being applied
+- You must **explicitly confirm** each file modification
+- Only documentation files (.md, .txt, .rst, .adoc) can be modified
+- All operations are restricted to the plugin directory for security
+
+#### Audit Log
+
+Click the **"View Audit Log"** button to see a complete history of:
+- All ChatGPT requests (general, code review, documentation)
+- Documentation changes (proposed and applied)
+- User confirmations and cancellations
+- Any errors or security warnings
+
+The audit log helps you track what operations have been performed and maintain accountability.
+
 ### Security Permissions
 
 The plugin includes four permission toggles that are **disabled by default** for your safety:
@@ -484,6 +532,10 @@ The plugin includes four permission toggles that are **disabled by default** for
 
 #### 🔒 Allow File I/O Operations (DANGEROUS)
 - **Default**: OFF
+- **Risk**: Can read and write files on your system
+- **When to enable**: When you need ChatGPT to generate or update documentation files
+- **Warning**: Can lead to data loss or file corruption
+- **Protection**: Limited to documentation files within the plugin directory
 - **Risk**: Can read and write project configuration files
 - **When to enable**: Only when you need ChatGPT to modify project files (e.g., DefaultEngine.ini, .uproject)
 - **Warning**: Can lead to data loss or file corruption
@@ -507,6 +559,8 @@ The plugin includes four permission toggles that are **disabled by default** for
 - **Safety**: All operations are logged in the audit log and can be undone using Unreal's Undo system
 
 **Important**: Each permission requires explicit confirmation when enabled. You will see a warning dialog explaining the risks.
+
+**Note on Documentation**: Even with File I/O enabled, all documentation changes are previewed and require your explicit approval before being written to disk.
 
 ## Security Best Practices
 
@@ -557,11 +611,28 @@ The plugin includes four permission toggles that are **disabled by default** for
 
 ### General Security
 
-- **Review all AI-generated code** before running it in your project
+- **Review all AI-generated content** before applying it to your project
 - **Use version control** (Git) to track all changes
 - **Test in isolated environments** before applying changes to production projects
 - **Monitor API usage** to detect unusual activity
 - **Keep the plugin updated** to receive security patches
+- **Review the audit log** regularly to track all operations
+- **Documentation changes are previewed** - always review before confirming
+
+### Documentation-Specific Security
+
+✅ **DO:**
+- Always preview documentation changes before applying them
+- Review AI-generated documentation for accuracy and appropriateness
+- Keep backups of important documentation files
+- Use the audit log to track all documentation modifications
+- Test documentation operations in a safe environment first
+
+❌ **DON'T:**
+- Blindly accept all documentation changes without review
+- Allow File I/O permissions to remain enabled permanently
+- Apply documentation changes to critical files without backups
+- Ignore the audit log entries
 
 ## Technical Details
 
@@ -617,6 +688,9 @@ ChatGPTEditor/
 │           ├── ChatGPTEditor.cpp            # Module implementation
 │           ├── SChatGPTWindow.h             # Slate window header
 │           ├── SChatGPTWindow.cpp           # Slate window implementation
+│           ├── AuditLog.h                   # Audit logging system
+│           ├── DocumentationHandler.h       # Documentation operations header
+│           └── DocumentationHandler.cpp     # Documentation operations implementation
 │           ├── SBlueprintAssistantPanel.h   # Blueprint assistant UI header
 │           ├── SBlueprintAssistantPanel.cpp # Blueprint assistant UI implementation
 │           ├── BlueprintAuditLog.h          # Audit logging system header
@@ -628,6 +702,19 @@ ChatGPTEditor/
 │       └── audit.log                        # Asset operations audit log
 └── README.md                                 # This file
 ```
+
+### Documentation Features
+
+The plugin includes a documentation generation and code review system:
+
+- **AuditLog**: Thread-safe logging system that tracks all operations
+- **DocumentationHandler**: Manages documentation file operations with security restrictions
+  - Safe file path validation (plugin directory only)
+  - Allowed file types: .md, .txt, .rst, .adoc
+  - Path traversal protection
+  - Preview generation
+  - File read/write with error handling
+- **Integration**: Automatically detects documentation requests and provides preview/confirmation workflow
 
 ## Troubleshooting
 
@@ -747,6 +834,12 @@ The ChatGPTEditor plugin is designed with accessibility in mind:
 
 ## Known Limitations
 
+- **Documentation parsing is basic**: The system uses pattern matching to detect documentation requests. Complex requests may not be automatically detected.
+- **No local AI support**: Requires internet connection and OpenAI API access
+- **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
+- **No streaming responses**: Responses arrive all at once rather than streaming
+- **File operations limited**: Only documentation files (.md, .txt, .rst, .adoc) in the plugin directory can be modified
+- **Manual content extraction**: For documentation generation, you may need to manually extract and format the AI's response
 - **Blueprint creation is conceptual**: The current implementation shows how Blueprint generation would work with preview and approval, but actual Blueprint node creation requires deeper integration with Blueprint editor APIs
 - **No local AI support**: Requires internet connection and OpenAI API access
 - **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
@@ -761,14 +854,21 @@ The ChatGPTEditor plugin is designed with accessibility in mind:
 ## Future Enhancements
 
 Potential features for future versions:
+- Improved documentation request parsing and extraction
 - Advanced natural language parsing for more complex scene editing commands
 - Integration with OpenAI GPT models for smarter command interpretation
 - Batch operations and scripting support
 - Full Blueprint node creation using Blueprint editor APIs
 - Visual Blueprint selection for explanation (instead of name-based)
 - Streaming response support
-- Custom system prompts
+- Custom system prompts for documentation generation
 - Conversation save/load functionality
+- Integration with Unreal's Blueprint system
+- Enhanced code review with inline comments
+- Asset analysis and recommendations
+- Multi-model support (GPT-4, etc.)
+- Automated documentation formatting
+- Diff view for documentation changes
 - Advanced Blueprint refactoring suggestions
 - Multi-model support (GPT-4, etc.)
 - More sophisticated actor property modification
@@ -801,10 +901,13 @@ This plugin is provided as-is for educational and development purposes. Please e
 The authors of this plugin are not responsible for:
 - API costs incurred
 - Data shared with OpenAI
-- Any modifications made to your project while using this plugin
+- Any modifications made to your project or documentation while using this plugin
 - Any consequences of enabling security permissions
+- Accuracy of AI-generated documentation or code explanations
 
 **Always maintain backups and use this plugin responsibly.**
+
+**Documentation Safety**: While the plugin includes safeguards (preview, confirmation, path restrictions), always review documentation changes carefully before applying them. The AI may generate incorrect or inappropriate content.
 
 ## Support
 
@@ -865,9 +968,15 @@ For issues, questions, or suggestions:
 - Security permission toggles
 - Conversation history
 - Environment-based API key storage
+- **Documentation generation and code review features**
+- **Audit logging system**
+- **Preview and confirmation workflow for file changes**
+- **Code explanation requests**
+- **Safe file operations restricted to plugin directory**
 
 ---
 
+**Remember**: This plugin is in beta. Always backup your project before use and test in a non-production environment first. Review all AI-generated content before applying changes.
 **Remember**: This plugin is in beta. Always backup your project before use and test in a non-production environment first.
 
 **Security Notice for Blueprint Scripting Assistant**: All Blueprint generation requires manual preview and approval. No code is executed without your explicit confirmation. All operations are logged in the audit log for security compliance.

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
+#include "DocumentationHandler.h"
 
 class SEditableTextBox;
 class SMultiLineEditableTextBox;
@@ -20,6 +21,7 @@ struct FBlueprintExplanation;
  * Slate widget for ChatGPT window
  * Provides UI for sending messages to OpenAI API and displaying responses
  * Includes security permission toggles for destructive operations
+ * Supports documentation generation and code review features
  * Supports console command execution and Python script generation
  * Includes Blueprint Scripting Assistant for generating and explaining Blueprints
  * Includes Asset Automation for creating and managing Unreal Engine assets
@@ -44,6 +46,7 @@ private:
 	// UI event handlers
 	FReply OnSendMessageClicked();
 	FReply OnClearHistoryClicked();
+	FReply OnViewAuditLogClicked();
 	FReply OnGenerateBlueprintClicked();
 	FReply OnExplainBlueprintClicked();
 	FReply OnExportAuditLogClicked();
@@ -72,6 +75,10 @@ private:
 	bool TryExecuteConsoleCommand(const FString& Response);
 	bool TryExecutePythonScript(const FString& Response);
 	FString ExtractCodeBlock(const FString& Response, const FString& Language) const;
+	
+	// Documentation and code review handlers
+	void HandleDocumentationResponse(const FString& UserMessage, const FString& AssistantResponse);
+	void ShowDocumentationPreview(const FDocumentationChange& Change);
 	
 	// Helper functions
 	void AppendMessage(const FString& Role, const FString& Message);
@@ -121,6 +128,7 @@ private:
 	// Conversation state
 	FString ConversationHistory;
 	TArray<TSharedPtr<FJsonObject>> Messages;
+	FString LastUserMessage;  // Track last user message for documentation requests
 	
 	// Security permissions (default to OFF for safety)
 	bool bAllowAssetWrite = false;
