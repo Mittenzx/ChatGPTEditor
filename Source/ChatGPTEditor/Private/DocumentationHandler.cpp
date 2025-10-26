@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "DocumentationHandler.h"
+#include "AuditLogger.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "HAL/PlatformFileManager.h"
@@ -78,18 +79,18 @@ bool FDocumentationHandler::ApplyChange(const FDocumentationChange& Change, FStr
 	if (!IsSafeFilePath(Change.FilePath))
 	{
 		OutError = TEXT("File path is outside the plugin directory. Operation rejected for security reasons.");
-		FAuditLog::Get().LogOperation(TEXT("ApplyDocChange"), OutError, Change.FilePath, false);
+		FAuditLogger::Get().LogError(TEXT("ApplyDocChange"), FString::Printf(TEXT("%s - %s"), *OutError, *Change.FilePath));
 		return false;
 	}
 
 	// Write the file
 	if (!WriteFile(Change.FilePath, Change.ProposedContent, OutError))
 	{
-		FAuditLog::Get().LogOperation(TEXT("ApplyDocChange"), FString::Printf(TEXT("Failed to write file: %s"), *OutError), Change.FilePath, false);
+		FAuditLogger::Get().LogError(TEXT("ApplyDocChange"), FString::Printf(TEXT("Failed to write file: %s - %s"), *OutError, *Change.FilePath));
 		return false;
 	}
 
-	FAuditLog::Get().LogOperation(TEXT("ApplyDocChange"), Change.Description, Change.FilePath, true);
+	FAuditLogger::Get().LogFileWrite(Change.FilePath, Change.Description);
 	return true;
 }
 

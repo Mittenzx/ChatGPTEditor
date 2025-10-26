@@ -155,7 +155,7 @@ bool FAssetAutomation::ExecuteOperation(const FAssetOperation& Operation, bool b
 	// Check if asset write is allowed
 	if (!bAllowAssetWrite)
 	{
-		FAuditLogEntry Entry;
+		FAssetAuditLogEntry Entry;
 		Entry.Operation = Operation.GetTypeAsString();
 		Entry.AssetName = Operation.AssetName;
 		Entry.User = FPlatformProcess::UserName();
@@ -171,7 +171,7 @@ bool FAssetAutomation::ExecuteOperation(const FAssetOperation& Operation, bool b
 	// Show confirmation dialog
 	if (!ShowConfirmationDialog(Operation))
 	{
-		FAuditLogEntry Entry;
+		FAssetAuditLogEntry Entry;
 		Entry.Operation = Operation.GetTypeAsString();
 		Entry.AssetName = Operation.AssetName;
 		Entry.User = FPlatformProcess::UserName();
@@ -211,7 +211,7 @@ bool FAssetAutomation::ExecuteOperation(const FAssetOperation& Operation, bool b
 	}
 	
 	// Log the result
-	FAuditLogEntry Entry;
+	FAssetAuditLogEntry Entry;
 	Entry.Operation = Operation.GetTypeAsString();
 	Entry.AssetName = Operation.AssetName;
 	Entry.User = FPlatformProcess::UserName();
@@ -276,7 +276,7 @@ bool FAssetAutomation::ShowConfirmationDialog(const FAssetOperation& Operation)
 	return Result == EAppReturnType::Yes;
 }
 
-void FAssetAutomation::WriteAuditLog(const FAuditLogEntry& Entry)
+void FAssetAutomation::WriteAuditLog(const FAssetAuditLogEntry& Entry)
 {
 	FString LogPath = GetAuditLogPath();
 	
