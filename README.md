@@ -6,7 +6,10 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 
 - **Slate-based UI**: Clean, integrated Editor tab that fits naturally into the Unreal Editor workflow
 - **OpenAI Integration**: Direct communication with OpenAI's Chat Completions API (GPT-3.5-turbo)
+- **Level Design & Scene Editing**: Natural language-based actor spawning, movement, deletion, and modification
 - **Security-First Design**: Permission toggles for potentially destructive operations
+- **Preview & Confirmation**: All scene changes require explicit preview and confirmation
+- **Audit Logging**: Complete tracking of all scene editing operations
 - **Conversation History**: Maintains context throughout your ChatGPT conversation
 - **Environment-based API Keys**: Secure API key storage using environment variables
 
@@ -67,9 +70,70 @@ A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality d
 3. Responses will appear in the conversation history area
 4. Click "Clear" to start a new conversation
 
+### Level Design & Scene Editing
+
+The plugin supports natural language commands for level design and scene editing. **This feature requires the "Allow Scene Editing" permission to be enabled.**
+
+#### Supported Commands
+
+**Spawning Actors:**
+- `Add 5 lights to this room` - Spawns 5 point lights
+- `Add 3 point lights` - Spawns 3 point lights
+- `Place a camera at PlayerStart` - Spawns a camera at the PlayerStart location
+- `Add 10 spot lights` - Spawns 10 spot lights
+- `Spawn a directional light` - Spawns a directional light
+
+**Moving Actors:**
+- `Move all props up by 100 units` - Moves all static mesh actors up by 100 units
+- `Move all lights up by 200` - Moves all lights up by 200 units
+- `Move all cameras down by 50` - Moves all cameras down by 50 units
+
+**Deleting Actors:**
+- `Delete all trigger volumes` - Deletes all trigger volumes in the level
+- `Remove all lights` - Deletes all light actors
+- `Delete all cameras` - Deletes all camera actors
+
+**Modifying Properties:**
+- `Change light color to red` - Changes all lights to red
+- `Set light color to blue` - Changes all lights to blue
+- `Change light color to green` - Changes all lights to green
+
+#### How It Works
+
+1. **Type a scene editing command** in the input box
+2. **The plugin detects the command** automatically (no special prefix needed)
+3. **A preview dialog appears** showing exactly what changes will be made
+4. **Review the changes carefully** - the preview shows the operation type, affected actors, and command details
+5. **Click "Confirm & Apply"** to execute the changes, or **"Cancel"** to abort
+6. **Changes are applied** and logged in the audit log
+7. **Use Ctrl+Z** to undo changes if needed (standard Unreal undo system)
+
+#### Viewing the Audit Log
+
+- Click the **"View Audit Log"** button to see all scene editing operations
+- The audit log shows:
+  - Timestamp of each operation
+  - Command that was executed
+  - Operation type (Spawn, Delete, Move, Modify)
+  - Affected actors
+  - Success/failure status
+  - Error messages (if any)
+
+#### Safety Features
+
+✅ **All operations require preview and confirmation** - No changes are applied without your explicit approval
+
+✅ **Comprehensive audit logging** - Every operation is tracked with full details
+
+✅ **Undo support** - All changes can be undone using Unreal's standard Undo system (Ctrl+Z)
+
+✅ **Permission-based access** - Scene editing is disabled by default and requires explicit permission
+
+✅ **Non-destructive by default** - Critical actors (like PlayerStart, Brushes) are protected from deletion
+
 ### Security Permissions
 
-The plugin includes three permission toggles that are **disabled by default** for your safety:
+The plugin includes four permission toggles that are **disabled by default** for your safety:
 
 #### 🔒 Allow Asset Write Operations (DANGEROUS)
 - **Default**: OFF
@@ -88,6 +152,13 @@ The plugin includes three permission toggles that are **disabled by default** fo
 - **Risk**: Can read and write files on your system
 - **When to enable**: Only when you need ChatGPT to work with external files
 - **Warning**: Can lead to data loss or file corruption
+
+#### 🔒 Allow Scene Editing (DANGEROUS)
+- **Default**: OFF
+- **Risk**: Can spawn, move, modify, or delete actors in your level
+- **When to enable**: Only when you want to use natural language level design features
+- **Warning**: All changes require preview and confirmation, but can still affect your level
+- **Safety**: All operations are logged in the audit log and can be undone using Unreal's Undo system
 
 **Important**: Each permission requires explicit confirmation when enabled. You will see a warning dialog explaining the risks.
 
@@ -149,17 +220,24 @@ The plugin includes three permission toggles that are **disabled by default** fo
 
 ```
 ChatGPTEditor/
-├── ChatGPTEditor.uplugin                    # Plugin descriptor
+├── ChatGPTEditor.uplugin                       # Plugin descriptor
 ├── Source/
 │   └── ChatGPTEditor/
-│       ├── ChatGPTEditor.Build.cs           # Build configuration
+│       ├── ChatGPTEditor.Build.cs              # Build configuration
 │       ├── Public/
-│       │   └── ChatGPTEditor.h              # Module header
+│       │   ├── ChatGPTEditor.h                 # Module header
+│       │   ├── SceneEditingTypes.h             # Scene editing data structures
+│       │   ├── AuditLogger.h                   # Audit logging header
+│       │   └── SceneEditingManager.h           # Scene editing manager header
 │       └── Private/
-│           ├── ChatGPTEditor.cpp            # Module implementation
-│           ├── SChatGPTWindow.h             # Slate window header
-│           └── SChatGPTWindow.cpp           # Slate window implementation
-└── README.md                                 # This file
+│           ├── ChatGPTEditor.cpp               # Module implementation
+│           ├── SChatGPTWindow.h                # Slate window header
+│           ├── SChatGPTWindow.cpp              # Slate window implementation
+│           ├── SSceneEditPreviewDialog.h       # Preview dialog header
+│           ├── SSceneEditPreviewDialog.cpp     # Preview dialog implementation
+│           ├── AuditLogger.cpp                 # Audit logging implementation
+│           └── SceneEditingManager.cpp         # Scene editing manager implementation
+└── README.md                                    # This file
 ```
 
 ## Troubleshooting
@@ -187,16 +265,32 @@ ChatGPTEditor/
 - You've exceeded your API rate limit or quota
 - Check your OpenAI account usage and billing settings
 
+### Scene Editing Not Working
+
+- Ensure you have enabled the "Allow Scene Editing" permission
+- Make sure you have an active level open in the editor
+- Check that your command follows the supported syntax (see Usage section)
+- Review the audit log for error details
+
+### "No active world found"
+
+- This error appears when no level is open in the editor
+- Open or create a level before using scene editing commands
+
 ## Known Limitations
 
-- **Current implementation is read-only**: The permission toggles are UI elements for future functionality. No destructive operations are currently implemented.
+- **Scene editing command parsing**: Currently supports predefined patterns (see Usage section for examples)
 - **No local AI support**: Requires internet connection and OpenAI API access
 - **Conversation context**: Limited by API token limits (approximately 4096 tokens for GPT-3.5-turbo)
 - **No streaming responses**: Responses arrive all at once rather than streaming
+- **Actor type detection**: Limited to common actor types (lights, cameras, static meshes, triggers)
 
 ## Future Enhancements
 
 Potential features for future versions:
+- Advanced natural language parsing for more complex scene editing commands
+- Integration with OpenAI GPT models for smarter command interpretation
+- Batch operations and scripting support
 - Streaming response support
 - Custom system prompts
 - Conversation save/load functionality
@@ -204,6 +298,8 @@ Potential features for future versions:
 - Code generation assistance
 - Asset analysis and recommendations
 - Multi-model support (GPT-4, etc.)
+- More sophisticated actor property modification
+- Support for landscape and foliage editing
 
 ## Contributing
 
@@ -242,10 +338,18 @@ For issues, questions, or suggestions:
 
 ## Version History
 
-### 1.0.0 (Current)
+### 1.1.0 (Current)
+- **Level Design & Scene Editing**: Natural language-based actor spawning, movement, deletion, and modification
+- **Preview & Confirmation System**: All scene changes require explicit preview and confirmation before applying
+- **Audit Logging**: Complete tracking of all scene editing operations with timestamps
+- **Scene Editing Permission**: New dedicated permission toggle for scene editing operations
+- **Safety Features**: Protected critical actors, undo support, comprehensive error handling
+- **Documentation**: Extensive usage examples and troubleshooting guide
+
+### 1.0.0
 - Initial release
 - Basic ChatGPT integration
-- Security permission toggles (UI only)
+- Security permission toggles
 - Conversation history
 - Environment-based API key storage
 
