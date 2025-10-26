@@ -403,6 +403,7 @@ FVector FSceneEditingManager::ParseMovementOffset(const FString& Command)
 
 	// Maximum units we'll try to parse from natural language
 	static const int32 MaxParsableUnits = 1000;
+	static const float DefaultMovementOffset = 100.0f; // Default units when no number specified
 
 	// Parse movement directions
 	if (LowerCommand.Contains(TEXT("up")))
@@ -417,11 +418,11 @@ FVector FSceneEditingManager::ParseMovementOffset(const FString& Command)
 			}
 		}
 		if (Offset.Z == 0)
-			Offset.Z = 100.0f; // Default
+			Offset.Z = DefaultMovementOffset;
 	}
 	else if (LowerCommand.Contains(TEXT("down")))
 	{
-		for (int32 i = 1; i <= 1000; ++i)
+		for (int32 i = 1; i <= MaxParsableUnits; ++i)
 		{
 			if (Command.Contains(FString::FromInt(i)))
 			{
@@ -430,7 +431,7 @@ FVector FSceneEditingManager::ParseMovementOffset(const FString& Command)
 			}
 		}
 		if (Offset.Z == 0)
-			Offset.Z = -100.0f; // Default
+			Offset.Z = -DefaultMovementOffset;
 	}
 
 	return Offset;
