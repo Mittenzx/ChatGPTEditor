@@ -68,10 +68,11 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 				SNew(SCheckBox)
 				.IsChecked(this, &SChatGPTWindow::GetAssetWritePermission)
 				.OnCheckStateChanged(this, &SChatGPTWindow::OnAssetWritePermissionChanged)
+				.ToolTipText(LOCTEXT("AssetWriteTooltip", "Enable to allow ChatGPT to create, modify, or delete project assets. DANGEROUS - Use with caution!"))
 				.Content()
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("AssetWritePermission", "Allow Asset Write Operations (DANGEROUS)"))
+					.Text(LOCTEXT("AssetWritePermission", "🔒 Allow Asset Write Operations (DANGEROUS)"))
 				]
 			]
 			
@@ -83,10 +84,11 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 				SNew(SCheckBox)
 				.IsChecked(this, &SChatGPTWindow::GetConsoleCommandPermission)
 				.OnCheckStateChanged(this, &SChatGPTWindow::OnConsoleCommandPermissionChanged)
+				.ToolTipText(LOCTEXT("ConsoleCommandTooltip", "Enable to allow ChatGPT to execute editor console commands. DANGEROUS - Use with caution!"))
 				.Content()
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("ConsoleCommandPermission", "Allow Console Commands (DANGEROUS)"))
+					.Text(LOCTEXT("ConsoleCommandPermission", "🔒 Allow Console Commands (DANGEROUS)"))
 				]
 			]
 			
@@ -98,10 +100,11 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 				SNew(SCheckBox)
 				.IsChecked(this, &SChatGPTWindow::GetFileIOPermission)
 				.OnCheckStateChanged(this, &SChatGPTWindow::OnFileIOPermissionChanged)
+				.ToolTipText(LOCTEXT("FileIOTooltip", "Enable to allow ChatGPT to read and write files on your system. DANGEROUS - Use with caution!"))
 				.Content()
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("FileIOPermission", "Allow File I/O Operations (DANGEROUS)"))
+					.Text(LOCTEXT("FileIOPermission", "🔒 Allow File I/O Operations (DANGEROUS)"))
 				]
 			]
 		]
@@ -245,6 +248,41 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 			.ColorAndOpacity(FSlateColor(FLinearColor(0.6f, 0.6f, 0.6f)))
 		]
 	];
+}
+
+FReply SChatGPTWindow::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+{
+	// Ctrl+Enter to send message
+	if (InKeyEvent.GetKey() == EKeys::Enter && InKeyEvent.IsControlDown())
+	{
+		return OnSendMessageClicked();
+	}
+	
+	// Ctrl+L to clear history
+	if (InKeyEvent.GetKey() == EKeys::L && InKeyEvent.IsControlDown())
+	{
+		return OnClearHistoryClicked();
+	}
+	
+	// Ctrl+Plus to increase font size
+	if ((InKeyEvent.GetKey() == EKeys::Equals || InKeyEvent.GetKey() == EKeys::Add) && InKeyEvent.IsControlDown())
+	{
+		return OnIncreaseFontSize();
+	}
+	
+	// Ctrl+Minus to decrease font size
+	if ((InKeyEvent.GetKey() == EKeys::Hyphen || InKeyEvent.GetKey() == EKeys::Subtract) && InKeyEvent.IsControlDown())
+	{
+		return OnDecreaseFontSize();
+	}
+	
+	// Ctrl+0 to reset font size
+	if (InKeyEvent.GetKey() == EKeys::Zero && InKeyEvent.IsControlDown())
+	{
+		return OnResetFontSize();
+	}
+	
+	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
 }
 
 FReply SChatGPTWindow::OnSendMessageClicked()

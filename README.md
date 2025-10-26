@@ -417,6 +417,7 @@ For issues, questions, or suggestions:
 ## Version History
 
 ### 1.1.0 (Current - UX, Accessibility & Asset Automation)
+### 1.1.0 (Current - UX & Accessibility Update)
 - ✨ NEW: Keyboard shortcuts for common actions (Ctrl+Enter, Ctrl+L, etc.)
 - ✨ NEW: Adjustable font sizes (8-24pt) with keyboard shortcuts
 - ✨ NEW: Comprehensive tooltips on all interactive elements
@@ -428,6 +429,7 @@ For issues, questions, or suggestions:
 - ✨ NEW: Confirmation dialogs with preview before asset changes
 - 📚 Enhanced documentation with keyboard shortcuts guide
 - 📚 Asset automation usage examples and security notes
+- 📚 Enhanced documentation with keyboard shortcuts guide
 - 🎨 Improved visual hierarchy and spacing
 
 ### 1.0.0

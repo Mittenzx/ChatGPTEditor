@@ -1,6 +1,7 @@
 # ChatGPTEditor Usage Guide
 
 This guide provides detailed information on how to use the ChatGPTEditor plugin effectively, with a focus on UX features, accessibility options, and asset automation.
+This guide provides detailed information on how to use the ChatGPTEditor plugin effectively, with a focus on UX features and accessibility options.
 
 ## Table of Contents
 1. [Getting Started](#getting-started)
@@ -9,6 +10,9 @@ This guide provides detailed information on how to use the ChatGPTEditor plugin 
 4. [Accessibility Features](#accessibility-features)
 5. [Tips and Best Practices](#tips-and-best-practices)
 6. [Troubleshooting](#troubleshooting)
+3. [Accessibility Features](#accessibility-features)
+4. [Tips and Best Practices](#tips-and-best-practices)
+5. [Troubleshooting](#troubleshooting)
 
 ## Getting Started
 
@@ -315,3 +319,4 @@ Found an issue or have a suggestion?
 ---
 
 **Last Updated**: Version 1.1.0 (UX, Accessibility & Asset Automation Update)
+**Last Updated**: Version 1.1.0 (UX & Accessibility Update)
