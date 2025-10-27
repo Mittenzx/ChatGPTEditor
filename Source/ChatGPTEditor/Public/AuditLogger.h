@@ -52,7 +52,7 @@ public:
 		const FString& AffectedActors, bool bSuccess, const FString& ErrorMessage = TEXT(""));
 
 	/** Get all audit log entries */
-	const TArray<FAuditLogEntry>& GetLogEntries() const;
+	TArray<FAuditLogEntry> GetLogEntries() const;
 
 	/** Get recent log entries (last N entries) */
 	TArray<FAuditLogEntry> GetRecentEntries(int32 Count) const;
