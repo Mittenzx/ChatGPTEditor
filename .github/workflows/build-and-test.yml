@@ -22,7 +22,7 @@ jobs:
       
     - name: Cache Unreal Engine
       id: cache-ue
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: C:\UnrealEngine
         key: ${{ runner.os }}-ue5.5-${{ hashFiles('**/ChatGPTEditor.uplugin') }}
