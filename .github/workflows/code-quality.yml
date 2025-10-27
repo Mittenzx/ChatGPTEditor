@@ -24,6 +24,11 @@ jobs:
         languages: cpp
         queries: security-and-quality
         
+    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
+    # For Unreal Engine plugins without a full build environment, this will scan the source files directly
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+        
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
 
