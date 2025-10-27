@@ -49,8 +49,8 @@ jobs:
         # Install markdownlint
         npm install -g markdownlint-cli
         
-        # Run markdownlint on all markdown files
-        markdownlint '**/*.md' --ignore node_modules || true
+        # Run markdownlint on all markdown files with config
+        markdownlint '**/*.md' --ignore node_modules --config .markdownlint.json
         
     - name: Check for broken links
       uses: gaurav-nelson/github-action-markdown-link-check@v1
