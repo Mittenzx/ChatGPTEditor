@@ -232,7 +232,7 @@ TArray<FString> FSceneEditingManager::DeleteActors(const FSceneEditAction& Actio
 
 	for (AActor* Actor : ActorsToDelete)
 	{
-		if (Actor && !Actor->IsPendingKill())
+		if (IsValid(Actor))
 		{
 			FString ActorName = Actor->GetName();
 			World->DestroyActor(Actor);

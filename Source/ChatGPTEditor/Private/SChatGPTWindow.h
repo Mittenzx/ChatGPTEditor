@@ -126,13 +126,6 @@ private:
 	 */
 	void DisplayTestResults(const FString& TestName, bool bSuccess, const FString& Results);
 	
-	/**
-	 * Process ChatGPT response for asset automation commands
-	 * Detects and executes asset creation/modification commands
-	 * @param Response The ChatGPT response text
-	 */
-	void ProcessAssetAutomation(const FString& Response);
-	
 	// Permission toggle handlers - called when security checkboxes are changed
 	void OnAssetWritePermissionChanged(ECheckBoxState NewState);
 	void OnConsoleCommandPermissionChanged(ECheckBoxState NewState);
@@ -197,9 +190,6 @@ private:
 	 * @param Command The scene editing command to process
 	 */
 	void ProcessSceneEditingCommand(const FString& Command);
-	
-	/** Show the audit log viewer */
-	FReply OnViewAuditLogClicked();
 	
 	// Accessibility helpers
 	void UpdateFontSize();

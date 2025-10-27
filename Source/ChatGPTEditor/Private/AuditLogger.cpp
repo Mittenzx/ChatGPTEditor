@@ -164,6 +164,11 @@ void FAuditLogger::LogOperation(const FString& UserCommand, const FString& Opera
 	WriteLogEntry(LogText);
 }
 
+const TArray<FAuditLogEntry>& FAuditLogger::GetLogEntries() const
+{
+	return LogEntries;
+}
+
 TArray<FAuditLogEntry> FAuditLogger::GetRecentEntries(int32 Count) const
 {
 	FScopeLock Lock(&const_cast<FCriticalSection&>(LogMutex));
