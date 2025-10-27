@@ -25,14 +25,22 @@ TArray<FSceneEditAction> FSceneEditingManager::ParseCommand(const FString& Comma
 {
 	TArray<FSceneEditAction> Actions;
 	
-	if (Command.IsEmpty())
+	// Validate input - check for empty or whitespace-only commands
+	FString TrimmedCommand = Command.TrimStartAndEnd();
+	if (TrimmedCommand.IsEmpty())
 	{
-		UE_LOG(LogChatGPTEditor, Warning, TEXT("ParseCommand received empty command"));
+		UE_LOG(LogChatGPTEditor, Warning, TEXT("ParseCommand received empty or whitespace-only command"));
 		return Actions;
 	}
 	
-	FString LowerCommand = Command.ToLower();
-	UE_LOG(LogChatGPTEditor, Verbose, TEXT("Parsing scene edit command: %s"), *Command);
+	FString LowerCommand = TrimmedCommand.ToLower();
+	
+	// Log command (truncate if too long to avoid log spam)
+	const int32 MaxLogLength = 100;
+	FString LogCommand = TrimmedCommand.Len() > MaxLogLength 
+		? TrimmedCommand.Left(MaxLogLength) + TEXT("...") 
+		: TrimmedCommand;
+	UE_LOG(LogChatGPTEditor, Verbose, TEXT("Parsing scene edit command: %s"), *LogCommand);
 
 	// Parse spawn commands (add, spawn, place)
 	if (LowerCommand.Contains(TEXT("add")) || LowerCommand.Contains(TEXT("spawn")) || LowerCommand.Contains(TEXT("place")))
