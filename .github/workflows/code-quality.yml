@@ -1,0 +1,148 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+      
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: cpp
+        queries: security-and-quality
+        build-mode: none
+        
+    # Build mode 'none' tells CodeQL to analyze source without building
+    # This is appropriate for Unreal Engine plugins without UE5.5 installed in CI
+        
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:cpp"
+
+  documentation-check:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Check README exists
+      run: |
+        if [ ! -f README.md ]; then
+          echo "Error: README.md not found"
+          exit 1
+        fi
+        
+    - name: Validate markdown files
+      run: |
+        # Install markdownlint
+        npm install -g markdownlint-cli
+        
+        # Run markdownlint on all markdown files with config
+        markdownlint '**/*.md' --ignore node_modules --config .markdownlint.json
+        
+    - name: Check for broken links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        config-file: '.github/markdown-link-check-config.json'
+        
+  plugin-validation:
+    name: Plugin Manifest Validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Install jq
+      run: sudo apt-get install -y jq
+      
+    - name: Validate plugin manifest
+      run: |
+        # Check if uplugin file is valid JSON
+        if ! jq empty ChatGPTEditor.uplugin; then
+          echo "Error: ChatGPTEditor.uplugin is not valid JSON"
+          exit 1
+        fi
+        
+        # Check required fields
+        VERSION=$(jq -r '.Version' ChatGPTEditor.uplugin)
+        VERSION_NAME=$(jq -r '.VersionName' ChatGPTEditor.uplugin)
+        FRIENDLY_NAME=$(jq -r '.FriendlyName' ChatGPTEditor.uplugin)
+        
+        echo "Plugin Version: $VERSION"
+        echo "Plugin Version Name: $VERSION_NAME"
+        echo "Plugin Friendly Name: $FRIENDLY_NAME"
+        
+        if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+          echo "Error: Version field is missing or empty"
+          exit 1
+        fi
+        
+    - name: Check for required documentation
+      run: |
+        REQUIRED_DOCS=("README.md" "SECURITY.md" "CHANGELOG.md")
+        MISSING_DOCS=()
+        
+        for doc in "${REQUIRED_DOCS[@]}"; do
+          if [ ! -f "$doc" ]; then
+            MISSING_DOCS+=("$doc")
+          fi
+        done
+        
+        if [ ${#MISSING_DOCS[@]} -gt 0 ]; then
+          echo "Warning: Missing documentation files: ${MISSING_DOCS[*]}"
+        fi
+
+  code-metrics:
+    name: Code Metrics and Statistics
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Count lines of code
+      run: |
+        echo "=== Code Statistics ==="
+        echo "C++ Header Files:"
+        find Source -name "*.h" | xargs wc -l | tail -1
+        echo ""
+        echo "C++ Source Files:"
+        find Source -name "*.cpp" | xargs wc -l | tail -1
+        echo ""
+        echo "Total C++ Code:"
+        find Source -name "*.cpp" -o -name "*.h" | xargs wc -l | tail -1
+        
+    - name: Check code complexity
+      run: |
+        echo "Checking for large files (>1000 lines)..."
+        find Source -name "*.cpp" -o -name "*.h" | while read file; do
+          lines=$(wc -l < "$file")
+          if [ $lines -gt 1000 ]; then
+            echo "$file: $lines lines - Consider refactoring"
+          fi
+        done

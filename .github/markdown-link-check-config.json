@@ -1,0 +1,39 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^https://platform.openai.com"
+    },
+    {
+      "pattern": "^https://api.example.com"
+    },
+    {
+      "pattern": "^https://status.openai.com"
+    },
+    {
+      "pattern": "^https://docs.unrealengine.com"
+    },
+    {
+      "pattern": "^https://keepachangelog.com"
+    },
+    {
+      "pattern": "^https://semver.org"
+    },
+    {
+      "pattern": "^https://github.com/Mittenzx/ChatGPTEditor"
+    },
+    {
+      "pattern": "^https://www.w3.org/WAI"
+    },
+    {
+      "pattern": "^https://www.unrealengine.com"
+    }
+  ],
+  "timeout": "20s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 206]
+}

@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SceneEditingManager.h"
+#include "ChatGPTEditor.h"
 #include "AuditLogger.h"
 #include "Engine/World.h"
 #include "Engine/StaticMeshActor.h"
@@ -23,9 +24,25 @@ FSceneEditingManager& FSceneEditingManager::Get()
 TArray<FSceneEditAction> FSceneEditingManager::ParseCommand(const FString& Command)
 {
 	TArray<FSceneEditAction> Actions;
-	FString LowerCommand = Command.ToLower();
+	
+	// Validate input - check for empty or whitespace-only commands
+	FString TrimmedCommand = Command.TrimStartAndEnd();
+	if (TrimmedCommand.IsEmpty())
+	{
+		UE_LOG(LogChatGPTEditor, Warning, TEXT("ParseCommand received empty or whitespace-only command"));
+		return Actions;
+	}
+	
+	FString LowerCommand = TrimmedCommand.ToLower();
+	
+	// Log command (truncate if too long to avoid log spam)
+	const int32 MaxLogLength = 100;
+	FString LogCommand = TrimmedCommand.Len() > MaxLogLength 
+		? TrimmedCommand.Left(MaxLogLength) + TEXT("...") 
+		: TrimmedCommand;
+	UE_LOG(LogChatGPTEditor, Verbose, TEXT("Parsing scene edit command: %s"), *LogCommand);
 
-	// Parse spawn commands
+	// Parse spawn commands (add, spawn, place)
 	if (LowerCommand.Contains(TEXT("add")) || LowerCommand.Contains(TEXT("spawn")) || LowerCommand.Contains(TEXT("place")))
 	{
 		FSceneEditAction Action;
@@ -42,8 +59,9 @@ TArray<FSceneEditAction> FSceneEditingManager::ParseCommand(const FString& Comma
 		}
 		
 		Actions.Add(Action);
+		UE_LOG(LogChatGPTEditor, Log, TEXT("Parsed spawn action: %s (count: %d)"), *Action.ActorClass, Action.Count);
 	}
-	// Parse delete commands
+	// Parse delete commands (delete, remove)
 	else if (LowerCommand.Contains(TEXT("delete")) || LowerCommand.Contains(TEXT("remove")))
 	{
 		FSceneEditAction Action;
@@ -51,6 +69,7 @@ TArray<FSceneEditAction> FSceneEditingManager::ParseCommand(const FString& Comma
 		Action.SearchPattern = ParseActorType(Command);
 		Action.Description = Command;
 		Actions.Add(Action);
+		UE_LOG(LogChatGPTEditor, Log, TEXT("Parsed delete action: %s"), *Action.SearchPattern);
 	}
 	// Parse move commands
 	else if (LowerCommand.Contains(TEXT("move")))
@@ -61,8 +80,9 @@ TArray<FSceneEditAction> FSceneEditingManager::ParseCommand(const FString& Comma
 		Action.Location = ParseMovementOffset(Command);
 		Action.Description = Command;
 		Actions.Add(Action);
+		UE_LOG(LogChatGPTEditor, Log, TEXT("Parsed move action: %s to %s"), *Action.SearchPattern, *Action.Location.ToString());
 	}
-	// Parse property modification commands
+	// Parse property modification commands (change, set, modify)
 	else if (LowerCommand.Contains(TEXT("change")) || LowerCommand.Contains(TEXT("set")) || LowerCommand.Contains(TEXT("modify")))
 	{
 		FSceneEditAction Action;

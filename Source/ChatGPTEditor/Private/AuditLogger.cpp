@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "AuditLogger.h"
+#include "ChatGPTEditor.h"
 #include "SceneEditingTypes.h"
 #include "HAL/PlatformFileManager.h"
 #include "Misc/FileHelper.h"
@@ -24,8 +25,11 @@ void FAuditLogger::Initialize()
 	
 	if (bInitialized)
 	{
+		UE_LOG(LogChatGPTEditor, Verbose, TEXT("AuditLogger already initialized"));
 		return;
 	}
+	
+	UE_LOG(LogChatGPTEditor, Log, TEXT("Initializing AuditLogger..."));
 	
 	EnsureLogDirectoryExists();
 	
@@ -36,6 +40,8 @@ void FAuditLogger::Initialize()
 	
 	WriteLog(InitMessage);
 	bInitialized = true;
+	
+	UE_LOG(LogChatGPTEditor, Log, TEXT("AuditLogger initialized successfully. Log path: %s"), *GetAuditLogPath());
 }
 
 void FAuditLogger::Shutdown()
@@ -44,8 +50,11 @@ void FAuditLogger::Shutdown()
 	
 	if (!bInitialized)
 	{
+		UE_LOG(LogChatGPTEditor, Verbose, TEXT("AuditLogger shutdown called but not initialized"));
 		return;
 	}
+	
+	UE_LOG(LogChatGPTEditor, Log, TEXT("Shutting down AuditLogger..."));
 	
 	FString ShutdownMessage = FString::Printf(
 		TEXT("=== Audit Log Shutdown ===\nTimestamp: %s\n\n"),
@@ -54,6 +63,8 @@ void FAuditLogger::Shutdown()
 	
 	WriteLog(ShutdownMessage);
 	bInitialized = false;
+	
+	UE_LOG(LogChatGPTEditor, Log, TEXT("AuditLogger shutdown complete"));
 }
 
 void FAuditLogger::LogAPIConnection(const FString& Endpoint, const FString& Method, bool bApproved)
@@ -232,6 +243,10 @@ void FAuditLogger::WriteLog(const FString& Entry)
 		LogFile->Close();
 		delete LogFile;
 	}
+	else
+	{
+		UE_LOG(LogChatGPTEditor, Error, TEXT("Failed to open audit log file for writing: %s"), *LogPath);
+	}
 }
 
 void FAuditLogger::WriteLogEntry(const FString& Entry)
@@ -255,6 +270,10 @@ void FAuditLogger::EnsureLogDirectoryExists()
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	if (!PlatformFile.DirectoryExists(*LogDir))
 	{
-		PlatformFile.CreateDirectoryTree(*LogDir);
+		UE_LOG(LogChatGPTEditor, Log, TEXT("Creating audit log directory: %s"), *LogDir);
+		if (!PlatformFile.CreateDirectoryTree(*LogDir))
+		{
+			UE_LOG(LogChatGPTEditor, Error, TEXT("Failed to create audit log directory: %s"), *LogDir);
+		}
 	}
 }

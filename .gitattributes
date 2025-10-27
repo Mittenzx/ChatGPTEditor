@@ -1,0 +1,60 @@
+# Git attributes for ChatGPTEditor plugin
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.cpp text eol=lf
+*.h text eol=lf
+*.cs text eol=lf
+*.c text eol=lf
+*.hpp text eol=lf
+
+# Unreal Engine specific
+*.uplugin text eol=lf
+*.uproject text eol=lf
+*.ini text eol=lf
+*.Target.cs text eol=lf
+*.Build.cs text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+
+# Scripts
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Serialization
+*.json text eol=lf
+*.xml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Graphics
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.tga binary
+
+# Archives
+*.zip binary
+*.7z binary
+*.tar binary
+*.gz binary
+
+# Unreal Engine assets (binary)
+*.uasset binary
+*.umap binary
+*.upk binary
+
+# Exclude from exports
+.gitattributes export-ignore
+.gitignore export-ignore
+.github/ export-ignore
+CONTRIBUTING.md export-ignore
