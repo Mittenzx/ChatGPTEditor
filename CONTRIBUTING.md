@@ -6,7 +6,6 @@ Thank you for your interest in contributing to ChatGPTEditor! This document prov
 
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
 - [How to Contribute](#how-to-contribute)
 - [Coding Standards](#coding-standards)
 - [Testing Guidelines](#testing-guidelines)

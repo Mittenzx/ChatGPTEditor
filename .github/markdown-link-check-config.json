@@ -4,7 +4,25 @@
       "pattern": "^http://localhost"
     },
     {
-      "pattern": "^https://platform.openai.com/api-keys"
+      "pattern": "^https://platform.openai.com"
+    },
+    {
+      "pattern": "^https://api.example.com"
+    },
+    {
+      "pattern": "^https://status.openai.com"
+    },
+    {
+      "pattern": "^https://docs.unrealengine.com"
+    },
+    {
+      "pattern": "^https://keepachangelog.com"
+    },
+    {
+      "pattern": "^https://semver.org"
+    },
+    {
+      "pattern": "^https://github.com/Mittenzx/ChatGPTEditor"
     }
   ],
   "timeout": "20s",
