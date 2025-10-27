@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+// Declare log category for ChatGPTEditor plugin
+DECLARE_LOG_CATEGORY_EXTERN(LogChatGPTEditor, Log, All);
+
 class FToolBarBuilder;
 class FMenuBuilder;
 

@@ -13,6 +13,9 @@
 
 static const FName ChatGPTEditorTabName("ChatGPTEditor");
 
+// Define log category
+DEFINE_LOG_CATEGORY(LogChatGPTEditor);
+
 #define LOCTEXT_NAMESPACE "FChatGPTEditorModule"
 
 void FChatGPTEditorModule::StartupModule()
