@@ -23,6 +23,12 @@
     },
     {
       "pattern": "^https://github.com/Mittenzx/ChatGPTEditor"
+    },
+    {
+      "pattern": "^https://www.w3.org/WAI"
+    },
+    {
+      "pattern": "^https://www.unrealengine.com"
     }
   ],
   "timeout": "20s",
