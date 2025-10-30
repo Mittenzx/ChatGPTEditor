@@ -74,13 +74,15 @@ if not exist "%TOOLS_DIR%" (
     goto test4
 )
 
-set TOOL_COUNT=0
-for %%F in ("%TOOLS_DIR%\*.h" "%TOOLS_DIR%\*.cpp") do (
-    set /a TOOL_COUNT+=1
-)
-
-if !TOOL_COUNT! GTR 0 (
-    call :pass "Found !TOOL_COUNT! MCP tool files"
+rem Use dir command to count actual files
+dir /b "%TOOLS_DIR%\*.h" "%TOOLS_DIR%\*.cpp" 2>nul | find /c /v "" > nul
+if !ERRORLEVEL! EQU 0 (
+    for /f %%A in ('dir /b "%TOOLS_DIR%\*.h" "%TOOLS_DIR%\*.cpp" 2^>nul ^| find /c /v ""') do set TOOL_COUNT=%%A
+    if !TOOL_COUNT! GTR 0 (
+        call :pass "Found !TOOL_COUNT! MCP tool files"
+    ) else (
+        call :fail "No MCP tool files found in %TOOLS_DIR%"
+    )
 ) else (
     call :fail "No MCP tool files found in %TOOLS_DIR%"
 )
@@ -145,9 +147,11 @@ echo ===================================
 
 if %TESTS_FAILED% EQU 0 (
     echo === All smoke tests passed ===
+    endlocal
     exit /b 0
 ) else (
     echo === Smoke tests failed ===
+    endlocal
     exit /b 1
 )
 
@@ -166,5 +170,3 @@ goto :eof
 set /a TESTS_SKIPPED+=1
 echo [SKIP] %~1
 goto :eof
-
-endlocal

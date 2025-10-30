@@ -182,7 +182,7 @@ test_code_style() {
     local issues=0
     
     # Check for files with tabs (if project uses spaces)
-    if find "$mcp_dir" -name "*.cpp" -o -name "*.h" | xargs grep -l $'\t' > /dev/null 2>&1; then
+    if find "$mcp_dir" -name "*.cpp" -o -name "*.h" | xargs -r grep -l $'\t' > /dev/null 2>&1; then
         info "Some files contain tabs (check if consistent with project style)"
     fi
     
