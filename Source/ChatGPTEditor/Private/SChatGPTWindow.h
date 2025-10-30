@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
+#include "Dom/JsonObject.h"
 #include "DocumentationHandler.h"
 
 class SEditableTextBox;

@@ -194,10 +194,10 @@ bool FChatGPTConsoleHandler::ParseNaturalLanguageCommand(const FString& NaturalL
 void FChatGPTConsoleHandler::LogCommandExecution(const FString& Command, bool bSuccess, const FString& ErrorMessage)
 {
 	// Get the audit log path
-	FString LogPath = FPaths::ProjectSavedDir() / TEXT("ChatGPTEditor") / TEXT("audit.log");
+	FString AuditLogPath = FPaths::ProjectSavedDir() / TEXT("ChatGPTEditor") / TEXT("audit.log");
 	
 	// Ensure directory exists
-	FString LogDir = FPaths::GetPath(LogPath);
+	FString LogDir = FPaths::GetPath(AuditLogPath);
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	if (!PlatformFile.DirectoryExists(*LogDir))
 	{
@@ -213,7 +213,7 @@ void FChatGPTConsoleHandler::LogCommandExecution(const FString& Command, bool bS
 		ErrorMessage.IsEmpty() ? TEXT("") : *FString::Printf(TEXT(" | Error: %s"), *ErrorMessage));
 	
 	// Append to log file
-	FFileHelper::SaveStringToFile(LogEntry, *LogPath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append);
+	FFileHelper::SaveStringToFile(LogEntry, *AuditLogPath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append);
 }
 
 #undef LOCTEXT_NAMESPACE

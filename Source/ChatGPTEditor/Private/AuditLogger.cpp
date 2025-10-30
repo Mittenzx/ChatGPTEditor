@@ -229,11 +229,11 @@ void FAuditLogger::WriteLog(const FString& Entry)
 {
 	FScopeLock Lock(&LogMutex);
 	
-	FString LogPath = GetAuditLogPath();
+	FString AuditLogPath = GetAuditLogPath();
 	
 	// Append to log file
 	IFileManager& FileManager = IFileManager::Get();
-	FArchive* LogFile = FileManager.CreateFileWriter(*LogPath, FILEWRITE_Append);
+	FArchive* LogFile = FileManager.CreateFileWriter(*AuditLogPath, FILEWRITE_Append);
 	
 	if (LogFile)
 	{
@@ -251,7 +251,7 @@ void FAuditLogger::WriteLog(const FString& Entry)
 	}
 	else
 	{
-		UE_LOG(LogChatGPTEditor, Error, TEXT("Failed to open audit log file for writing: %s"), *LogPath);
+		UE_LOG(LogChatGPTEditor, Error, TEXT("Failed to open audit log file for writing: %s"), *AuditLogPath);
 	}
 }
 
@@ -270,8 +270,8 @@ FString FAuditLogger::GetTimestamp() const
 
 void FAuditLogger::EnsureLogDirectoryExists()
 {
-	FString LogPath = GetAuditLogPath();
-	FString LogDir = FPaths::GetPath(LogPath);
+	FString AuditLogPath = GetAuditLogPath();
+	FString LogDir = FPaths::GetPath(AuditLogPath);
 	
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	if (!PlatformFile.DirectoryExists(*LogDir))

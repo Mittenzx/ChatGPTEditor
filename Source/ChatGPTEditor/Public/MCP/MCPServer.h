@@ -54,7 +54,7 @@ private:
 	TSharedPtr<FJsonObject> ServerCapabilities;
 	
 	// Thread safety
-	FCriticalSection RegistrationLock;
+	mutable FCriticalSection RegistrationLock;
 	
 	// Statistics
 	int32 RequestsProcessed;

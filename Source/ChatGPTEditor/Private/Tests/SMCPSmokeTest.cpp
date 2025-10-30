@@ -23,7 +23,7 @@
 #include "JsonObjectConverter.h"
 
 // Test flags for MCP smoke tests
-#define MCP_SMOKE_TEST_FLAGS (EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter | EAutomationTestFlags::SmokeFilter)
+#define MCP_SMOKE_TEST_FLAGS (EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
 /**
  * Test: MCP Server Initialization
