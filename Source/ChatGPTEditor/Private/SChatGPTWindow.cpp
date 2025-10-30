@@ -520,42 +520,6 @@ SChatGPTWindow::~SChatGPTWindow()
 }
 
 FReply SChatGPTWindow::OnSendMessageClicked()
-FReply SChatGPTWindow::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
-{
-	// Ctrl+Enter to send message
-	if (InKeyEvent.GetKey() == EKeys::Enter && InKeyEvent.IsControlDown())
-	{
-		return OnSendMessageClicked();
-	}
-	
-	// Ctrl+L to clear history
-	if (InKeyEvent.GetKey() == EKeys::L && InKeyEvent.IsControlDown())
-	{
-		return OnClearHistoryClicked();
-	}
-	
-	// Ctrl+Plus to increase font size
-	if ((InKeyEvent.GetKey() == EKeys::Equals || InKeyEvent.GetKey() == EKeys::Add) && InKeyEvent.IsControlDown())
-	{
-		return OnIncreaseFontSize();
-	}
-	
-	// Ctrl+Minus to decrease font size
-	if ((InKeyEvent.GetKey() == EKeys::Hyphen || InKeyEvent.GetKey() == EKeys::Subtract) && InKeyEvent.IsControlDown())
-	{
-		return OnDecreaseFontSize();
-	}
-	
-	// Ctrl+0 to reset font size
-	if (InKeyEvent.GetKey() == EKeys::Zero && InKeyEvent.IsControlDown())
-	{
-		return OnResetFontSize();
-	}
-	
-	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
-}
-
-FReply SChatGPTWindow::OnSendMessageClicked()
 {
 	FString UserMessage = MessageInputBox->GetText().ToString();
 	
@@ -2396,74 +2360,6 @@ FBlueprintExplanation SChatGPTWindow::ParseBlueprintExplanationResponse(const FS
 	return Explanation;
 }
 
-// Keyboard shortcut handling
-FReply SChatGPTWindow::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
-{
-	// Ctrl+Enter to send message
-	if (InKeyEvent.GetKey() == EKeys::Enter && InKeyEvent.IsControlDown())
-	{
-		return OnSendMessageClicked();
-	}
-	
-	// Ctrl+L to clear history
-	if (InKeyEvent.GetKey() == EKeys::L && InKeyEvent.IsControlDown())
-	{
-		return OnClearHistoryClicked();
-	}
-	
-	// Ctrl++ to increase font size
-	if ((InKeyEvent.GetKey() == EKeys::Equals || InKeyEvent.GetKey() == EKeys::Add) && InKeyEvent.IsControlDown())
-	{
-		return OnIncreaseFontSize();
-	}
-	
-	// Ctrl+- to decrease font size
-	if ((InKeyEvent.GetKey() == EKeys::Hyphen || InKeyEvent.GetKey() == EKeys::Subtract) && InKeyEvent.IsControlDown())
-	{
-		return OnDecreaseFontSize();
-	}
-	
-	// Ctrl+0 to reset font size
-	if (InKeyEvent.GetKey() == EKeys::Zero && InKeyEvent.IsControlDown())
-	{
-		return OnResetFontSize();
-	}
-	
-	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
-}
-
-// Font size management
-FReply SChatGPTWindow::OnIncreaseFontSize()
-{
-	if (FontSize < MaxFontSize)
-	{
-		FontSize++;
-		UpdateFontSize();
-	}
-	return FReply::Handled();
-}
-
-FReply SChatGPTWindow::OnDecreaseFontSize()
-{
-	if (FontSize > MinFontSize)
-	{
-		FontSize--;
-		UpdateFontSize();
-	}
-	return FReply::Handled();
-}
-
-FReply SChatGPTWindow::OnResetFontSize()
-{
-	FontSize = DefaultFontSize;
-	UpdateFontSize();
-	return FReply::Handled();
-}
-
-void SChatGPTWindow::UpdateFontSize()
-{
-	// The font size is updated through TAttribute binding in the UI
-	// This just triggers a re-evaluation
 void SChatGPTWindow::UpdateFontSize()
 {
 	// Font is updated automatically through the TAttribute lambda
