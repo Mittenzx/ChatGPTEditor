@@ -88,6 +88,9 @@ Desktop.ini
 *.temp
 *.log
 
+# MCP Test Logs
+logs/*.json
+
 # User Specific
 *.userprefs
 *.pidb
