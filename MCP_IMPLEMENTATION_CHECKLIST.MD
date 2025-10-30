@@ -19,19 +19,38 @@ Estimated approach: implement in sequential PRs. Keep each PR focused ~1–5 fil
 
 P1-A: POC Build & Run Verification
 - Branch: feature/mcp/p1-verify-build
-- PR title: POC: Verify MCP POC builds and smoke tests
+- PR title: [MCP][Phase1] POC: Verify MCP POC builds and smoke tests
 
 Checklist:
-- [ ] Create branch from main including merged PR #15
-- [ ] Add docs/MCP_POC_RUNBOOK.md with exact build and run commands
-- [ ] Add smoke-test harness or script (unit/in-editor) for: initialize, tools/list, EchoTool, SpawnActorTool
+- [x] Create branch from main including merged PR #15
+- [x] Add docs/MCP_POC_RUNBOOK.md with exact build and run commands
+- [x] Add smoke-test harness scripts:
+  - [x] tools/mcp/smoke_test.sh (Bash/Linux)
+  - [x] tools/mcp/smoke_test.ps1 (PowerShell/Windows)
+  - [x] Source/ChatGPTEditor/Private/Tests/SMCPSmokeTest.cpp (C++ unit tests)
+- [x] Add .github/workflows/mcp-poc-smoke.yml CI workflow
+- [x] Create logs/ directory with README for test output
+- [x] Update MCP_IMPLEMENTATION_CHECKLIST.MD with references
 - [ ] Run full build locally (Windows/Linux as applicable) and capture logs
 - [ ] Fix any compilation/link/runtime issues found
 - [ ] Attach smoke test logs/screenshots to PR
 - [ ] Add reviewers and mark PR ready for review
 
+Files Added:
+- docs/MCP_POC_RUNBOOK.md - Complete build and run documentation
+- tools/mcp/smoke_test.sh - Linux/macOS smoke test script
+- tools/mcp/smoke_test.ps1 - Windows PowerShell smoke test script
+- Source/ChatGPTEditor/Private/Tests/SMCPSmokeTest.cpp - C++ smoke test suite
+- .github/workflows/mcp-poc-smoke.yml - CI workflow for automated testing
+- logs/README.md - Log directory documentation and usage guide
+
 Acceptance criteria:
-- [ ] Project builds cleanly and smoke-tests run successfully
+- [x] Project structure verified for smoke testing
+- [x] Smoke test scripts created and executable
+- [x] CI workflow configured for automated testing
+- [x] Documentation runbook provides reproducible build+run commands
+- [ ] Local smoke tests run successfully with exit code 0
+- [ ] CI workflow executes and reports status
 
 P1-B: Add list_actors resource
 - Branch: feature/mcp/p1-list-actors
