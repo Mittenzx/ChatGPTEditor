@@ -15,6 +15,8 @@ Estimated approach: implement in sequential PRs. Keep each PR focused ~1–5 fil
 
 ## Phase 1: POC Stabilization (small PRs)
 
+> **Note**: A Phase 1 initialization PR has been opened to establish the foundational infrastructure for MCP POC stabilization. This PR includes the runbook, smoke-test harness, and PR template. Use the [MCP Phase 1 PR template](.github/PULL_REQUEST_TEMPLATE/MCP_PHASE1.md) for all Phase 1 PRs.
+
 P1-A: POC Build & Run Verification
 - Branch: feature/mcp/p1-verify-build
 - PR title: POC: Verify MCP POC builds and smoke tests
