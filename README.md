@@ -2,6 +2,18 @@
 
 A secure Unreal Engine 5.5 Editor plugin that integrates ChatGPT functionality directly into the Unreal Editor. This plugin adds a Slate-based Editor tab that allows you to send messages to the OpenAI Chat Completions API and receive responses in real-time.
 
+## 🔔 MCP (Model Context Protocol) Review Available
+
+> **📊 Important:** A comprehensive analysis of adopting the Model Context Protocol (MCP) for this plugin is now available. MCP could reduce code by 40-50% and enable multi-AI support (Claude, GPT-4, Gemini, local LLMs).
+>
+> **👉 [Start here: MCP Review Documentation](MCP_REVIEW_README.md)**
+>
+> Quick links:
+> - [Executive Summary](MCP_EXECUTIVE_SUMMARY.md) (10 min read) - For decision makers
+> - [Visual Comparison](MCP_VISUAL_COMPARISON.md) - See architecture diagrams
+> - [Full Analysis](MCP_ADOPTION_ANALYSIS.md) - Complete strategic analysis
+> - [Implementation Guide](MCP_IMPLEMENTATION_GUIDE.md) - Code examples and roadmap
+
 ## Features
 
 ### Core Functionality
