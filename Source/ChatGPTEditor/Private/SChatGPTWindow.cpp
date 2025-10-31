@@ -1556,6 +1556,8 @@ void SChatGPTWindow::ShowCodePreviewDialog(const FString& Code, const FString& D
 	
 	// Always show the code in the conversation history
 	AppendMessage(TEXT("Generated Code"), Code);
+}
+
 ECheckBoxState SChatGPTWindow::GetSceneEditingPermission() const
 {
 	return bAllowSceneEditing ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
@@ -1643,7 +1645,18 @@ FReply SChatGPTWindow::OnViewAuditLogClicked()
 		int32 StartIdx = FMath::Max(0, Entries.Num() - 50);
 		for (int32 i = StartIdx; i < Entries.Num(); ++i)
 		{
-			AuditLogText += Entries[i].ToString() + TEXT("\n");
+			const FAuditLogEntry& Entry = Entries[i];
+			FString EntryText = FString::Printf(TEXT("[%s] %s | %s | Actors: %s | Success: %s"),
+				*Entry.Timestamp.ToString(),
+				*Entry.OperationType,
+				*Entry.UserCommand,
+				*Entry.AffectedActors,
+				Entry.bWasSuccessful ? TEXT("Yes") : TEXT("No"));
+			if (!Entry.ErrorMessage.IsEmpty())
+			{
+				EntryText += FString::Printf(TEXT(" | Error: %s"), *Entry.ErrorMessage);
+			}
+			AuditLogText += EntryText + TEXT("\n");
 		}
 	}
 	
@@ -1652,15 +1665,6 @@ FReply SChatGPTWindow::OnViewAuditLogClicked()
 	// Display in a message dialog
 	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(AuditLogText));
 	
-	return FReply::Handled();
-}
-
-	// Get the audit log
-	FString LogText = FAuditLogger::Get().ExportLogToString();
-
-	// Create a dialog to show the log
-	FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(LogText));
-
 	return FReply::Handled();
 }
 
@@ -1784,6 +1788,43 @@ void SChatGPTWindow::SendTestGenerationRequest(const FString& TestPrompt, const 
 	UserMessage->SetStringField(TEXT("role"), TEXT("user"));
 	UserMessage->SetStringField(TEXT("content"), SystemPrompt);
 	TestMessages.Add(UserMessage);
+	
+	// Create request body
+	TSharedPtr<FJsonObject> RequestBody = MakeShareable(new FJsonObject);
+	RequestBody->SetStringField(TEXT("model"), TEXT("gpt-3.5-turbo"));
+	
+	// Add messages array
+	TArray<TSharedPtr<FJsonValue>> MessagesArray;
+	for (const auto& Msg : TestMessages)
+	{
+		MessagesArray.Add(MakeShareable(new FJsonValueObject(Msg)));
+	}
+	RequestBody->SetArrayField(TEXT("messages"), MessagesArray);
+	RequestBody->SetNumberField(TEXT("max_tokens"), 2000);
+	RequestBody->SetNumberField(TEXT("temperature"), 0.3);
+	
+	// Serialize to JSON
+	FString RequestBodyString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestBodyString);
+	FJsonSerializer::Serialize(RequestBody.ToSharedRef(), Writer);
+	
+	// Create HTTP request
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetURL(TEXT("https://api.openai.com/v1/chat/completions"));
+	HttpRequest->SetVerb(TEXT("POST"));
+	HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+	HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *GetAPIKey()));
+	HttpRequest->SetContentAsString(RequestBodyString);
+	
+	// Bind response callback
+	HttpRequest->OnProcessRequestComplete().BindSP(this, &SChatGPTWindow::OnTestGenerationResponseReceived);
+	
+	// Send request
+	HttpRequest->ProcessRequest();
+	
+	AppendMessage(TEXT("System"), FString::Printf(TEXT("Generating %s for: %s..."), *TestType, *TestPrompt));
+}
+
 FReply SChatGPTWindow::OnExplainBlueprintClicked()
 {
 	FString BlueprintName = BlueprintNameBox->GetText().ToString();
@@ -1824,17 +1865,11 @@ FReply SChatGPTWindow::OnExplainBlueprintClicked()
 	
 	// Add messages array
 	TArray<TSharedPtr<FJsonValue>> MessagesArray;
-	for (const auto& Msg : TestMessages)
-	TArray<TSharedPtr<FJsonValue>> MessagesArray;
 	for (const auto& Msg : ExplanationMessages)
 	{
 		MessagesArray.Add(MakeShareable(new FJsonValueObject(Msg)));
 	}
 	RequestBody->SetArrayField(TEXT("messages"), MessagesArray);
-	RequestBody->SetNumberField(TEXT("max_tokens"), 2000); // More tokens for code generation
-	RequestBody->SetNumberField(TEXT("temperature"), 0.3); // Lower temperature for more focused code generation
-	
-	// Serialize to JSON string
 	RequestBody->SetNumberField(TEXT("max_tokens"), 1000);
 	RequestBody->SetNumberField(TEXT("temperature"), 0.5);
 	
@@ -1851,15 +1886,15 @@ FReply SChatGPTWindow::OnExplainBlueprintClicked()
 	HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *GetAPIKey()));
 	HttpRequest->SetContentAsString(RequestBodyString);
 	
-	// Bind response callback
-	HttpRequest->OnProcessRequestComplete().BindSP(this, &SChatGPTWindow::OnTestGenerationResponseReceived);
 	// Bind callback
 	HttpRequest->OnProcessRequestComplete().BindSP(this, &SChatGPTWindow::OnBlueprintExplanationResponseReceived, BlueprintName);
 	
 	// Send request
 	HttpRequest->ProcessRequest();
 	
-	AppendMessage(TEXT("System"), FString::Printf(TEXT("Generating %s for: %s..."), *TestType, *TestPrompt));
+	AppendMessage(TEXT("Blueprint Assistant"), FString::Printf(TEXT("Generating explanation for '%s'..."), *BlueprintName));
+	
+	return FReply::Handled();
 }
 
 void SChatGPTWindow::OnTestGenerationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -1869,59 +1904,6 @@ void SChatGPTWindow::OnTestGenerationResponseReceived(FHttpRequestPtr Request, F
 	if (!bWasSuccessful || !Response.IsValid())
 	{
 		AppendMessage(TEXT("Error"), TEXT("Failed to connect to OpenAI API for test generation."));
-		FTestAutomationHelper::LogAuditMessage(TEXT("ERROR"), TEXT("Test generation API request failed"));
-	AppendMessage(TEXT("Blueprint Assistant"), FString::Printf(TEXT("Generating explanation for '%s'..."), *BlueprintName));
-	
-	return FReply::Handled();
-}
-
-FReply SChatGPTWindow::OnExportAuditLogClicked()
-{
-	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
-	if (!DesktopPlatform)
-	{
-		FMessageDialog::Open(EAppMsgType::Ok, 
-			LOCTEXT("PlatformError", "Failed to access desktop platform."));
-		return FReply::Handled();
-	}
-	
-	TArray<FString> OutFiles;
-	const FString DefaultPath = FPaths::ProjectSavedDir();
-	const FString DefaultFile = FString::Printf(TEXT("BlueprintAuditLog_%s.txt"), *FDateTime::Now().ToString());
-	
-	if (DesktopPlatform->SaveFileDialog(
-		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(AsShared()),
-		TEXT("Export Audit Log"),
-		DefaultPath,
-		DefaultFile,
-		TEXT("Text Files (*.txt)|*.txt"),
-		EFileDialogFlags::None,
-		OutFiles))
-	{
-		if (OutFiles.Num() > 0)
-		{
-			if (FBlueprintAuditLog::Get().ExportToFile(OutFiles[0]))
-			{
-				FMessageDialog::Open(EAppMsgType::Ok, 
-					FText::Format(LOCTEXT("ExportSuccess", "Audit log exported successfully to:\n{0}"), 
-					FText::FromString(OutFiles[0])));
-			}
-			else
-			{
-				FMessageDialog::Open(EAppMsgType::Ok, 
-					LOCTEXT("ExportFailed", "Failed to export audit log."));
-			}
-		}
-	}
-	
-	return FReply::Handled();
-}
-
-void SChatGPTWindow::OnBlueprintGenerationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, const FString& UserPrompt)
-{
-	if (!bWasSuccessful || !Response.IsValid())
-	{
-		AppendMessage(TEXT("Error"), TEXT("Failed to connect to OpenAI API for Blueprint generation."));
 		return;
 	}
 	
@@ -1931,7 +1913,6 @@ void SChatGPTWindow::OnBlueprintGenerationResponseReceived(FHttpRequestPtr Reque
 		FString ErrorMessage = FString::Printf(TEXT("API Error (HTTP %d): %s"), 
 			ResponseCode, *Response->GetContentAsString());
 		AppendMessage(TEXT("Error"), ErrorMessage);
-		FTestAutomationHelper::LogAuditMessage(TEXT("ERROR"), ErrorMessage);
 		return;
 	}
 	
@@ -1947,14 +1928,12 @@ void SChatGPTWindow::OnBlueprintGenerationResponseReceived(FHttpRequestPtr Reque
 	}
 	
 	// Extract assistant message
-	// Extract content
 	const TArray<TSharedPtr<FJsonValue>>* ChoicesArray;
 	if (ResponseObject->TryGetArrayField(TEXT("choices"), ChoicesArray) && ChoicesArray->Num() > 0)
 	{
 		TSharedPtr<FJsonObject> Choice = (*ChoicesArray)[0]->AsObject();
 		if (!Choice.IsValid())
 		{
-			AppendMessage(TEXT("Error"), TEXT("Unexpected API response format."));
 			AppendMessage(TEXT("Error"), TEXT("Invalid response format."));
 			return;
 		}
@@ -1962,7 +1941,7 @@ void SChatGPTWindow::OnBlueprintGenerationResponseReceived(FHttpRequestPtr Reque
 		TSharedPtr<FJsonObject> Message = Choice->GetObjectField(TEXT("message"));
 		if (!Message.IsValid())
 		{
-			AppendMessage(TEXT("Error"), TEXT("Unexpected API response format."));
+			AppendMessage(TEXT("Error"), TEXT("Missing message in response."));
 			return;
 		}
 		
@@ -2023,6 +2002,112 @@ void SChatGPTWindow::OnBlueprintGenerationResponseReceived(FHttpRequestPtr Reque
 			AppendMessage(TEXT("Assistant"), AssistantResponse);
 			AppendMessage(TEXT("System"), 
 				TEXT("No test code block found in response. Please try rephrasing your request."));
+		}
+	}
+}
+
+FReply SChatGPTWindow::OnExportAuditLogClicked()
+{
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+	if (!DesktopPlatform)
+	{
+		FMessageDialog::Open(EAppMsgType::Ok, 
+			LOCTEXT("PlatformError", "Failed to access desktop platform."));
+		return FReply::Handled();
+	}
+	
+	TArray<FString> OutFiles;
+	const FString DefaultPath = FPaths::ProjectSavedDir();
+	const FString DefaultFile = FString::Printf(TEXT("BlueprintAuditLog_%s.txt"), *FDateTime::Now().ToString());
+	
+	if (DesktopPlatform->SaveFileDialog(
+		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(AsShared()),
+		TEXT("Export Audit Log"),
+		DefaultPath,
+		DefaultFile,
+		TEXT("Text Files (*.txt)|*.txt"),
+		EFileDialogFlags::None,
+		OutFiles))
+	{
+		if (OutFiles.Num() > 0)
+		{
+			if (FBlueprintAuditLog::Get().ExportToFile(OutFiles[0]))
+			{
+				FMessageDialog::Open(EAppMsgType::Ok, 
+					FText::Format(LOCTEXT("ExportSuccess", "Audit log exported successfully to:\n{0}"), 
+					FText::FromString(OutFiles[0])));
+			}
+			else
+			{
+				FMessageDialog::Open(EAppMsgType::Ok, 
+					LOCTEXT("ExportFailed", "Failed to export audit log."));
+			}
+		}
+	}
+	
+	return FReply::Handled();
+}
+
+void SChatGPTWindow::OnBlueprintGenerationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, const FString& UserPrompt)
+{
+	if (!bWasSuccessful || !Response.IsValid())
+	{
+		AppendMessage(TEXT("Error"), TEXT("Failed to connect to OpenAI API for Blueprint generation."));
+		return;
+	}
+	
+	int32 ResponseCode = Response->GetResponseCode();
+	if (ResponseCode != 200)
+	{
+		FString ErrorMessage = FString::Printf(TEXT("API Error (HTTP %d): %s"), 
+			ResponseCode, *Response->GetContentAsString());
+		AppendMessage(TEXT("Error"), ErrorMessage);
+		return;
+	}
+	
+	// Parse response
+	FString ResponseString = Response->GetContentAsString();
+	TSharedPtr<FJsonObject> ResponseObject;
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(ResponseString);
+	
+	if (!FJsonSerializer::Deserialize(Reader, ResponseObject) || !ResponseObject.IsValid())
+	{
+		AppendMessage(TEXT("Error"), TEXT("Failed to parse API response."));
+		return;
+	}
+	
+	// Extract assistant message
+	const TArray<TSharedPtr<FJsonValue>>* ChoicesArray;
+	if (ResponseObject->TryGetArrayField(TEXT("choices"), ChoicesArray) && ChoicesArray->Num() > 0)
+	{
+		TSharedPtr<FJsonObject> Choice = (*ChoicesArray)[0]->AsObject();
+		if (!Choice.IsValid())
+		{
+			AppendMessage(TEXT("Error"), TEXT("Invalid response format."));
+			return;
+		}
+		
+		TSharedPtr<FJsonObject> Message = Choice->GetObjectField(TEXT("message"));
+		if (!Message.IsValid())
+		{
+			AppendMessage(TEXT("Error"), TEXT("Missing message in response."));
+			return;
+		}
+		
+		FString Content = Message->GetStringField(TEXT("content"));
+		
+		// Parse Blueprint data
+		FBlueprintPreviewData PreviewData = ParseBlueprintGenerationResponse(Content);
+		PreviewData.UserPrompt = UserPrompt;
+		
+		if (PreviewData.bIsValid)
+		{
+			ShowBlueprintPreview(PreviewData, UserPrompt);
+		}
+		else
+		{
+			AppendMessage(TEXT("Error"), TEXT("Failed to parse Blueprint preview data from response."));
+			AppendMessage(TEXT("Assistant"), Content);
 		}
 	}
 }
@@ -2156,29 +2241,6 @@ void SChatGPTWindow::DisplayTestResults(const FString& TestName, bool bSuccess, 
 	FString StatusEmoji = bSuccess ? TEXT("✅") : TEXT("❌");
 	AppendMessage(TEXT("Test Results"), 
 		FString::Printf(TEXT("%s Test: %s\n\n%s"), *StatusEmoji, *TestName, *Results));
-			AppendMessage(TEXT("Error"), TEXT("Missing message in response."));
-			return;
-		}
-		
-		FString Content = Message->GetStringField(TEXT("content"));
-		
-		// Parse Blueprint data
-		FBlueprintPreviewData PreviewData = ParseBlueprintGenerationResponse(Content);
-		PreviewData.UserPrompt = UserPrompt;
-		
-		if (PreviewData.bIsValid)
-		{
-			// Log preview shown
-			FBlueprintAuditLog::Get().LogPreviewShown(Content);
-			
-			// Show preview dialog
-			ShowBlueprintPreview(PreviewData, UserPrompt);
-		}
-		else
-		{
-			AppendMessage(TEXT("Error"), TEXT("Failed to parse Blueprint generation response. Please try a different prompt."));
-		}
-	}
 }
 
 void SChatGPTWindow::OnBlueprintExplanationResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful, const FString& BlueprintName)
@@ -2401,27 +2463,6 @@ void SChatGPTWindow::UpdateFontSize()
 FText SChatGPTWindow::GetFontSizeButtonText() const
 {
 	return FText::Format(LOCTEXT("FontSizeDisplay", "{0}pt"), FontSize);
-}
-
-// Asset automation processing
-void SChatGPTWindow::ProcessAssetAutomation(const FString& Response)
-{
-	if (!bAllowAssetWrite)
-	{
-		// Asset automation is disabled
-		return;
-	}
-	
-	// Parse and execute asset commands
-	FAssetAutomation Automation;
-	TArray<FAssetOperation> Operations = Automation.ParseResponse(Response);
-	
-	if (Operations.Num() > 0)
-	{
-		AppendMessage(TEXT("System"), FString::Printf(TEXT("Detected %d asset operation(s) in response."), Operations.Num()));
-		Automation.ExecuteCommands(Operations, bAllowAssetWrite);
-	}
-	return FText::Format(LOCTEXT("FontSizeText", "Font Size: {0}"), FontSize);
 }
 
 #undef LOCTEXT_NAMESPACE
