@@ -1121,6 +1121,10 @@ FReply SChatGPTWindow::OnCancelTestCodeClicked()
 		TestPreviewWindow->RequestDestroyWindow();
 		TestPreviewWindow.Reset();
 	}
+	
+	return FReply::Handled();
+}
+
 void SChatGPTWindow::HandleDocumentationResponse(const FString& UserMessage, const FString& AssistantResponse)
 {
 	// Only process if it's a documentation request and File I/O permission is enabled
@@ -1171,6 +1175,10 @@ void SChatGPTWindow::ShowDocumentationPreview(const FDocumentationChange& Change
 		{
 			AppendMessage(TEXT("Error"), 
 				FString::Printf(TEXT("Failed to apply documentation change: %s"), *Error));
+		}
+	}
+}
+
 bool SChatGPTWindow::ExtractFileOperationCommand(const FString& Message, FString& OutCommand, FString& OutFilePath, FString& OutContent)
 {
 	// Look for file operation commands in the message
@@ -1393,6 +1401,8 @@ void SChatGPTWindow::ShowFileChangePreview(const FString& FilePath, const FStrin
 		AppendMessage(TEXT("System"), TEXT("File changes cancelled by user"));
 		FAuditLogger::Get().LogOperation("FileOperation", FString::Printf(TEXT("User cancelled changes to: %s"), *Preview.FilePath));
 	}
+}
+
 FString SChatGPTWindow::ExtractCodeBlock(const FString& Response, const FString& Language) const
 {
 	// Look for markdown code blocks with optional language specifier
