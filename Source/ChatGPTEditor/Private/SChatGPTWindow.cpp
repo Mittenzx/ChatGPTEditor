@@ -1222,6 +1222,11 @@ bool SChatGPTWindow::ExtractFileOperationCommand(const FString& Message, FString
 			OutContent = Message.Mid(ContentStart, ContentEnd - ContentStart).TrimStartAndEnd();
 			return true;
 		}
+	}
+	
+	return false;
+}
+
 ECheckBoxState SChatGPTWindow::GetPythonScriptingPermission() const
 {
 	return bAllowPythonScripting ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
@@ -1438,6 +1443,8 @@ FString SChatGPTWindow::ExtractCodeBlock(const FString& Response, const FString&
 	Code.TrimStartAndEndInline();
 	
 	return Code;
+}
+
 void SChatGPTWindow::OnSceneEditingPermissionChanged(ECheckBoxState NewState)
 {
 	HandlePermissionChange(
