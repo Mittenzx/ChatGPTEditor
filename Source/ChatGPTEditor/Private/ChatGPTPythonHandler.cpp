@@ -7,7 +7,7 @@
 #include "Misc/Paths.h"
 
 // Python execution support
-#if WITH_PYTHON
+#if defined(WITH_PYTHON) && WITH_PYTHON
 #include "IPythonScriptPlugin.h"
 #endif
 
@@ -110,7 +110,7 @@ bool FChatGPTPythonHandler::ExecuteScript(const FString& Script, bool bRequireCo
 	}
 	
 	// Execute the script
-#if WITH_PYTHON
+#if defined(WITH_PYTHON) && WITH_PYTHON
 	IPythonScriptPlugin* PythonPlugin = IPythonScriptPlugin::Get();
 	if (PythonPlugin)
 	{
@@ -159,7 +159,7 @@ void FChatGPTPythonHandler::PreviewScript(const FString& Script, FString& OutPre
 
 bool FChatGPTPythonHandler::IsPythonAvailable() const
 {
-#if WITH_PYTHON
+#if defined(WITH_PYTHON) && WITH_PYTHON
 	IPythonScriptPlugin* PythonPlugin = IPythonScriptPlugin::Get();
 	return PythonPlugin != nullptr;
 #else

@@ -156,7 +156,6 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 			]
 			
 			// Python Scripting Permission
-			// Scene Editing Permission
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.Padding(10.0f, 2.0f)
@@ -164,18 +163,27 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 				SNew(SCheckBox)
 				.IsChecked(this, &SChatGPTWindow::GetPythonScriptingPermission)
 				.OnCheckStateChanged(this, &SChatGPTWindow::OnPythonScriptingPermissionChanged)
+				.ToolTipText(LOCTEXT("PythonScriptingTooltip", "Enable to allow ChatGPT to execute Python scripts in your editor. DANGEROUS - Use with caution!"))
 				.Content()
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("PythonScriptingPermission", "Allow Python Scripting (DANGEROUS)"))
+					.Text(LOCTEXT("PythonScriptingPermission", "🔒 Allow Python Scripting (DANGEROUS)"))
 				]
 			]
+			
+			// Scene Editing Permission
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(10.0f, 2.0f)
+			[
+				SNew(SCheckBox)
 				.IsChecked(this, &SChatGPTWindow::GetSceneEditingPermission)
 				.OnCheckStateChanged(this, &SChatGPTWindow::OnSceneEditingPermissionChanged)
+				.ToolTipText(LOCTEXT("SceneEditingTooltip", "Enable to allow ChatGPT to modify your level. DANGEROUS - Use with caution!"))
 				.Content()
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("SceneEditingPermission", "Allow Scene Editing (DANGEROUS)"))
+					.Text(LOCTEXT("SceneEditingPermission", "🔒 Allow Scene Editing (DANGEROUS)"))
 				]
 			]
 		]
@@ -492,7 +500,6 @@ void SChatGPTWindow::Construct(const FArguments& InArgs)
 		.Padding(10.0f, 5.0f)
 		[
 			SNew(STextBlock)
-			.Text(LOCTEXT("APIKeyInfo", "Set OPENAI_API_KEY environment variable. Supports: code explanations, documentation generation, and code review."))
 			.Text(LOCTEXT("APIKeyInfo", "💡 Tip: Set OPENAI_API_KEY environment variable with your API key"))
 			.Font(FCoreStyle::GetDefaultFontStyle("Italic", 9))
 			.ColorAndOpacity(FSlateColor(FLinearColor(0.7f, 0.7f, 0.7f)))
