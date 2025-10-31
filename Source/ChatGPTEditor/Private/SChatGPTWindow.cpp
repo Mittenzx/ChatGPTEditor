@@ -990,6 +990,10 @@ void SChatGPTWindow::OnExternalAPIPermissionChanged(ECheckBoxState NewState)
 			"- Network activity\n\n"
 			"All requests will require preview and approval before execution.\n"
 			"All connections are logged in Saved/ChatGPTEditor/audit.log\n\n"
+			"Do you want to continue?")
+	);
+}
+
 // Test automation UI handlers
 
 TSharedRef<SWidget> SChatGPTWindow::MakeTestTypeComboWidget(TSharedPtr<FString> InItem)
