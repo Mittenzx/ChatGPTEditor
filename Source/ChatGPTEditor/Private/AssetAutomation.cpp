@@ -278,10 +278,10 @@ bool FAssetAutomation::ShowConfirmationDialog(const FAssetOperation& Operation)
 
 void FAssetAutomation::WriteAuditLog(const FAssetAuditLogEntry& Entry)
 {
-	FString LogPath = GetAuditLogPath();
+	FString AuditLogPath = GetAuditLogPath();
 	
 	// Create directory if it doesn't exist
-	FString LogDir = FPaths::GetPath(LogPath);
+	FString LogDir = FPaths::GetPath(AuditLogPath);
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	if (!PlatformFile.DirectoryExists(*LogDir))
 	{
@@ -300,7 +300,7 @@ void FAssetAutomation::WriteAuditLog(const FAssetAuditLogEntry& Entry)
 	);
 	
 	// Append to log file
-	FFileHelper::SaveStringToFile(LogEntry, *LogPath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append);
+	FFileHelper::SaveStringToFile(LogEntry, *AuditLogPath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append);
 }
 
 FString FAssetAutomation::GetAuditLogPath()

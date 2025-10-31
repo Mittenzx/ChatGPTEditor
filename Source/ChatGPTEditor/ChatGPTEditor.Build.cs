@@ -28,7 +28,6 @@ public class ChatGPTEditor : ModuleRules
 				"HTTP",
 				"Json",
 				"JsonUtilities",
-				"PythonScriptPlugin",
 				"BlueprintGraph",
 				"Kismet",
 				"KismetCompiler",
@@ -38,5 +37,11 @@ public class ChatGPTEditor : ModuleRules
 				"AssetRegistry"
 			}
 		);
+		
+		// Optional Python support
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.Add("PythonScriptPlugin");
+		}
 	}
 }

@@ -7,8 +7,6 @@
 #include "Styling/SlateStyleRegistry.h"
 #include "Framework/Application/SlateApplication.h"
 #include "LevelEditor.h"
-#include "WorkspaceMenuStructure.h"
-#include "WorkspaceMenuStructureModule.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "ToolMenus.h"
 
@@ -29,14 +27,12 @@ void FChatGPTEditorModule::StartupModule()
 	// Register legacy ChatGPT tab spawner - Make it visible in the Window menu
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ChatGPTEditorTabName, FOnSpawnTab::CreateRaw(this, &FChatGPTEditorModule::OnSpawnPluginTab))
 		.SetDisplayName(LOCTEXT("FChatGPTEditorTabTitle", "ChatGPT (Legacy)"))
-		.SetMenuType(ETabSpawnerMenuType::Enabled)
-		.SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory());
+		.SetMenuType(ETabSpawnerMenuType::Enabled);
 	
 	// Register MCP Test Window
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(MCPTestWindowTabName, FOnSpawnTab::CreateRaw(this, &FChatGPTEditorModule::OnSpawnMCPTestTab))
 		.SetDisplayName(LOCTEXT("FMCPTestWindowTabTitle", "MCP Test Window"))
-		.SetMenuType(ETabSpawnerMenuType::Enabled)
-		.SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory());
+		.SetMenuType(ETabSpawnerMenuType::Enabled);
 }
 
 void FChatGPTEditorModule::ShutdownModule()
