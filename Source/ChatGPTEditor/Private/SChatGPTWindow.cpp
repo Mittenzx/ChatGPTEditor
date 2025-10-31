@@ -1745,8 +1745,13 @@ FReply SChatGPTWindow::OnGenerateBlueprintClicked()
 	HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *GetAPIKey()));
 	HttpRequest->SetContentAsString(RequestBodyString);
 	
-	// Bind callback with user prompt
-	HttpRequest->OnProcessRequestComplete().BindSP(this, &SChatGPTWindow::OnBlueprintGenerationResponseReceived, UserPrompt);
+	// Bind callback with user prompt using lambda to capture the parameter
+	HttpRequest->OnProcessRequestComplete().BindLambda(
+		[this, UserPrompt](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		{
+			OnBlueprintGenerationResponseReceived(Request, Response, bWasSuccessful, UserPrompt);
+		}
+	);
 	
 	// Send request
 	HttpRequest->ProcessRequest();
@@ -1886,8 +1891,13 @@ FReply SChatGPTWindow::OnExplainBlueprintClicked()
 	HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *GetAPIKey()));
 	HttpRequest->SetContentAsString(RequestBodyString);
 	
-	// Bind callback
-	HttpRequest->OnProcessRequestComplete().BindSP(this, &SChatGPTWindow::OnBlueprintExplanationResponseReceived, BlueprintName);
+	// Bind callback using lambda to capture the BlueprintName parameter
+	HttpRequest->OnProcessRequestComplete().BindLambda(
+		[this, BlueprintName](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		{
+			OnBlueprintExplanationResponseReceived(Request, Response, bWasSuccessful, BlueprintName);
+		}
+	);
 	
 	// Send request
 	HttpRequest->ProcessRequest();
